@@ -307,13 +307,19 @@ __r+=" NULL";
 __r+=" ";
 __r+=link['op'];
 }
-__r+="\"></div></td> <td>";
-__r+=link['service'];
+__r+="\"></div></td> ";
+var brake=link['service_name']=='';
+__r+=" <td>";
+if(link['service_name']!=''){
+__r+=link['service_name'];
 __r+=".<wbr>";
 __r+=link['parent'];
 if(link['type']){
 __r+=".<wbr>";
 __r+=link['tfield'];
+}
+}else{
+__r+="???";
 }
 __r+=" </td></tr>";
 }

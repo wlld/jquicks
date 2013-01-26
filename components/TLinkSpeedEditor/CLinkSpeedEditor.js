@@ -10,7 +10,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
         this.child = ''; //Имя дочерней модели
         this.lfield = ''; //Имя ссылочного поля
         this.rfield = '';
-        this.service = ''; //Имя родительского сервиса
+        this.service = -1; //Идентификатор родительского сервиса
         this.parent = ''; //Имя родительской модели
         this.page = ''; //Имя страницы
         this.link = null;
@@ -37,6 +37,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
     save:function(){
        var radios,i,l,e;
        var f = this.form;
+       //TODO: Add values checking
        e = {
            type:f.type[1].checked?1:0,	
            child:f.child.value,	
@@ -97,14 +98,14 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
                 f.type[0].checked = true;
                 f.type[1].checked = false;
                 for(i=0,l=radios.length;i<l;i++) radios[i].checked = (radios[i].value==link.op);
-            }
+            } 
             f.type[0].disabled = f.type[1].disabled = true;
         }
         else{
             this.link = null;
             f.child.value = this.child = '';
             f.lfield.value = this.lfield = '';
-            f.service.value = this.service = '';
+            f.service.value = this.service = -1;
             f.parent.value = this.parent = '';
             f.op.value = '';
             for(i=0,l=radios.length;i<l;i++) radios[i].checked = (i==3);
@@ -128,7 +129,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
             case 0: f.parent.disabled = f.parent.options.length<=1;
             case 1: f.service.disabled = f.service.options.length<=1;
             case 2: if (!this.link ) f.lfield.disabled = f.lfield.options.length<=1;
-            default: if (!this.link ) f.child.disabled = f.child.options.length<=1;
+            case 3: if (!this.link ) f.child.disabled = f.child.options.length<=1;
         }
         this.loader.style.display = 'none';
     },
@@ -136,7 +137,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
     _onLoadChilds:function(){
         var rows = this.mchild.rows,def,l;
         l = rows.length;
-        if (l==0) return;
+        if (l==0) {this._enableFields(4); return;}
         def = (l==1)? (this.child=rows[0].name):this.child;
         this._setSelectsList('child',rows,def);
         if(def) this._fetchLField();
@@ -145,7 +146,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
     _onLoadLFields:function(){
         var rows = this.mlfield.rows,def,l,i;
         l = rows.length;
-        if (l==0) return;
+        if (l==0) {this._enableFields(3); return;}
         this.links = [];
         for(i=0;i<l;i++) if(rows[i].link) this.links.push(rows[i]);
         l = this.links.length;
@@ -157,18 +158,18 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
         else this._enableFields(2);
     },
     _onLoadServices:function(e){
-        var rows = this.mservice.rows,i;
+        var rows = this.mservice.rows,l,def;
         l = rows.length;
-        if (l==0) return;
-        def = (l==1)? (this.service=rows[0].name):this.service;
-        this._setSelectsList('service',rows,def);
+        if (l==0) {this._enableFields(2); return;};
+        def = (l==1)? (this.service=rows[0].id):this.service;
+        this._setSelectsList('service',rows,def,true);
         if(def) this._fetchParent();
         else this._enableFields(1);
     },
     _onLoadParent:function(e){
-        var rows = this.mparent.rows;
+        var rows = this.mparent.rows,l,def;
         l = rows.length;
-        if (l==0) return;
+        if (l==0) {this._enableFields(1); return;}
         def = (l==1)? (this.parent=rows[0].name):this.parent;
         this._setSelectsList('parent',rows,def);
         this._enableFields(0);
@@ -182,7 +183,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
         this.mlfield.fetch({service:this.comp_class,model:v});
     },
     _fetchService:function(){
-        n = this.form.lfield.selectedIndex;
+        var n = this.form.lfield.selectedIndex;
         if(n<0) return;
         var link = this.links[n].link;
         var srv_class = link[0]? link[0]:'TDBService';
@@ -197,7 +198,7 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
             return;
         }
         else{
-            n = this.form.service.selectedIndex;
+            var n = this.form.service.selectedIndex;
             if(n<0) return;
             var type = this.mservice.rows[n].type;
             this._disableFields();
@@ -221,10 +222,11 @@ jq.newClass('CLinkSpeedEditor','CVidget',{
        this._fetchParent();
     },
 //=============================================================        
-    _setSelectsList:function(name,rows,def){
+    _setSelectsList:function(name,rows,def,id){
         var opt = "", ctrl = this.form[name];
         for(var i=0,l=rows.length;i<l;i++){
-            opt+= '<option value="'+rows[i].name+'">'+rows[i].name+'</option>';
+            var val = id? rows[i].id:rows[i].name;
+            opt+= '<option value="'+val+'">'+rows[i].name+'</option>';
         }
         ctrl.innerHTML = opt;
         ctrl.value = def;

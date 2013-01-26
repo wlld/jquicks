@@ -28,25 +28,26 @@ class TDBService_ extends TService_{
     protected function _rename($name) {
         $oldname = strtolower($this->_getName());
         $newname = strtolower($name);
-        if(!$this->project->isComponentExists('TDataBase')) return;
-        $this->db = $this->project->getByName('TDataBase')->db;
-        $r = $this->db->query('SHOW TABLES');
-        if(!$r) $this->_dbError();
-        $tbls = $r->fetchAll(PDO::FETCH_COLUMN,0);
-        $tt = array();
-        foreach($this->_getTables() as $table){
-            $told = $oldname.'_'.$table;
-            $tnew = $newname.'_'.$table;
-            if(in_array($tnew, $tbls)){
-                $cmp = &$this->project->db['components'][$this->id];
-                $this->_catchTable($table,$tnew,$cmp);
-                continue;
-            } 
-            if(in_array($told, $tbls)) $tt[] = $told.' TO '.$tnew;
-        }
-        if($tt){
-            $sql = 'RENAME TABLE '.join(',', $tt);
-            if ($this->db->exec($sql)===false) $this->_dbError();
+        if($this->project->isComponentExists('TDataBase')){
+            $this->db = $this->project->getByName('TDataBase')->db;
+            $r = $this->db->query('SHOW TABLES');
+            if(!$r) $this->_dbError();
+            $tbls = $r->fetchAll(PDO::FETCH_COLUMN,0);
+            $tt = array();
+            foreach($this->_getTables() as $table){
+                $told = $oldname.'_'.$table;
+                $tnew = $newname.'_'.$table;
+                if(in_array($tnew, $tbls)){
+                    $cmp = &$this->project->db['components'][$this->id];
+                    $this->_catchTable($table,$tnew,$cmp);
+                    continue;
+                } 
+                if(in_array($told, $tbls)) $tt[] = $told.' TO '.$tnew;
+            }
+            if($tt){
+                $sql = 'RENAME TABLE '.join(',', $tt);
+                if ($this->db->exec($sql)===false) $this->_dbError();
+            }
         }
         parent::_rename($name);
     }
@@ -97,13 +98,15 @@ class TDBService_ extends TService_{
         $links = isset($cmp['links'][0][$table])? $cmp['links'][0][$table]:array();
         //Проверяем существующие ключи
         $e_links = $this->_getForignKeys($db_table_name);
+        $c = $this->project->db['components'];
         foreach($e_links as $link){
-            if(!isset($links[$link[2]])) $this->_dropTableKey($db_table_name,$link[0]);
+            if(!isset($links[$link[2]])) $this->_dropTableKey($db_table_name,$link[1]);
             else{
                 //Проверяем, совпадают ли параметры существующего ключа с заданными в ссылке
                 $l = $links[$link[2]];
-                $ptable = strtolower($l[0].'_'.$l[1]);
-                if(self::_isThatLink($link,$ptable,$l[2])) {
+                if(!isset($c[$l[0]])) {$this->_dropTableKey($db_table_name,$link[1]); continue;}
+                $ptable = strtolower($c[$l[0]]['n'].'_'.$l[2]);
+                if(self::_isThatLink($link,$ptable,$l[3])) {
                     unset($links[$link[2]]);
                     continue;
                 }
@@ -112,8 +115,10 @@ class TDBService_ extends TService_{
         }    
         //Создаём недостающие ссылки
         foreach($links as $field=>$l){
-            $ptable = strtolower($l[0].'_'.$l[1]);
-            $this->_addTableKey($db_table_name,$field,$ptable,$l[2]);
+            if(isset($c[$l[0]])){
+                $ptable = strtolower($c[$l[0]]['n'].'_'.$l[2]);
+                $this->_addTableKey($db_table_name,$field,$ptable,$l[3]);
+            }
         }
     }
     /**

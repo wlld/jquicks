@@ -19,7 +19,7 @@ jq.newClass('CLinksCheckingDialog','CVidget',{
             cservice:e.cservice,
             child:e.link.child,
             lfield:e.link.lfield, 
-            service:e.link.service,
+            service:e.link.service_name,
             parent:e.link.parent 
         }
         this.link = args;

@@ -1,5 +1,5 @@
 <?
-if(!isset($_GET['edpage'])) $_GET['edpage'] = "site.index";
+if(!isset($_GET['edpage'])) $_GET['edpage'] = "designer.index";
 $p = explode('.',$_GET['edpage']);
 if(count($p) !== 2){
     echo "Invalid format of parameter edpage. 'project.page' required.";

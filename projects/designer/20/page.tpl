@@ -282,7 +282,8 @@
   {{/if}}
   </td>
   <td><div class="link_image{{if $link[op]=='SET NULL'}} NULL{{else}} {{$link[op]}}{{/if}}"></div></td>
-  <td>{{$link[service]}}.<wbr>{{$link[parent]}}{{if $link[type]}}.<wbr>{{$link[tfield]}}{{/if}}
+  {{assign var=brake value = $link[service_name]==''}}
+  <td>{{if $link[service_name]!=''}}{{$link[service_name]}}.<wbr>{{$link[parent]}}{{if $link[type]}}.<wbr>{{$link[tfield]}}{{/if}}{{else}}???{{/if}}
   </td>
 </tr>
 {{/foreach}}

@@ -16,7 +16,7 @@
     <embed name="mservice" type="TModel">
         <prpval name="service">TPageEditService</prpval>
         <prpval name="model">component</prpval>
-        <prpval name="fields">["name","type"]</prpval>
+        <prpval name="fields">["name","type","id"]</prpval>
         <prpval name="import">class</prpval>
     </embed>
     <embed name="mparent" type="TCacheModel">

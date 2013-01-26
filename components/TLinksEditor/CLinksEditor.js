@@ -1,7 +1,6 @@
 jq.newClass('CLinksEditor','CVidget',{
     construct:function(){
         jq.CLinksEditor.superclass.constructor.apply(this,arguments);
-        jq.registerEventHandler(this.name+".model","onfetch",[this,'redraw']);
         jq.registerEventHandler(this.speededitor,"onaddrow",[this,'_new']);
         jq.registerEventHandler(this.speededitor,"oneditrow",[this,'_update']);
         this.curent_tr = null;
@@ -54,6 +53,7 @@ jq.newClass('CLinksEditor','CVidget',{
     },
     _update:function(r){
         this.model.update(r,this.curent_index);
+        if(r.service) this.model.fetch(null,jq.FETCH_IF_UPDATE);
     },
     redraw:function(){
         jq.CLinksEditor.superclass.redraw.call(this);

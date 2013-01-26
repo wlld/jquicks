@@ -53,7 +53,8 @@
     <field name="idx" desc="Уникальный индекс" type="CHAR" fetch="1" />
     <field name="type" desc="0-forign key|1-rating" type="INTEGER" fetch="1" insert="2" />
     <field name="child" desc="Имя дочерней модели" type="CHAR" insert="2" fetch="1"/>
-    <field name="service" desc="Имя родительского сервиса" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="service" desc="Идентификатор родительского сервиса" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="service_name" desc="Имя родительского сервиса" type="CHAR" fetch="1"/>
     <field name="parent" desc="Имя родительской модели" type="CHAR" insert="2" fetch="1" update="1"/>
     <field name="op" desc="delete_mode для forign_key или operation для rating" type="CHAR" insert="2" fetch="1" update="1"/>
     <field name="lfield" desc="Имя ссылочного поля" type="CHAR" insert="2" fetch="1"/>

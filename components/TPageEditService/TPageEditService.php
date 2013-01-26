@@ -35,7 +35,7 @@ private static $_definition_struc = array (
       'p' => 'a:3:{s:7:"project";a:2:{i:0;i:3;i:1;b:1;}s:9:"component";a:2:{i:0;i:1;i:1;b:1;}s:4:"type";a:2:{i:0;i:1;i:1;b:0;}}',
       'i' => 'a:10:{s:4:"type";a:2:{i:0;i:1;i:1;b:1;}s:5:"child";a:2:{i:0;i:3;i:1;b:1;}s:7:"service";a:2:{i:0;i:3;i:1;b:1;}s:6:"parent";a:2:{i:0;i:3;i:1;b:1;}s:2:"op";a:2:{i:0;i:3;i:1;b:1;}s:6:"lfield";a:2:{i:0;i:3;i:1;b:1;}s:6:"rfield";a:2:{i:0;i:3;i:1;b:1;}s:6:"tfield";a:2:{i:0;i:3;i:1;b:1;}s:7:"project";a:2:{i:0;i:3;i:1;b:1;}s:9:"component";a:2:{i:0;i:1;i:1;b:1;}}',
       'u' => 'a:5:{s:7:"service";a:2:{i:0;i:3;i:1;b:0;}s:6:"parent";a:2:{i:0;i:3;i:1;b:0;}s:2:"op";a:2:{i:0;i:3;i:1;b:0;}s:6:"rfield";a:2:{i:0;i:3;i:1;b:0;}s:6:"tfield";a:2:{i:0;i:3;i:1;b:0;}}',
-      'f' => 'a:9:{s:3:"idx";i:3;s:4:"type";i:1;s:5:"child";i:3;s:7:"service";i:3;s:6:"parent";i:3;s:2:"op";i:3;s:6:"lfield";i:3;s:6:"rfield";i:3;s:6:"tfield";i:3;}',
+      'f' => 'a:10:{s:3:"idx";i:3;s:4:"type";i:1;s:5:"child";i:3;s:7:"service";i:3;s:12:"service_name";i:3;s:6:"parent";i:3;s:2:"op";i:3;s:6:"lfield";i:3;s:6:"rfield";i:3;s:6:"tfield";i:3;}',
       'owner' => false,
     ),
   ),
@@ -336,6 +336,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             else $row['tpl'] = '';
         }
         if (in_array('name',$fields))$row['name'] = $cmp['n'];
+        if (in_array('id',$fields))$row['id'] = $id;
         if (in_array('type',$fields))$row['type'] = $cmp['c'];
         if (in_array('group',$fields))$row['group'] = $this->_getComponentGroup($cmp['c']);
         return $row;
@@ -523,11 +524,14 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                foreach($cmp['links'][0] as $child=>$fk)
                    foreach($fk as $lfield=>$val){
                       $row = array('idx'=>"{$p['project']}.{$p['component']}.0.$child.$lfield");
+                      $breaked = !isset($this->_dbcomponents[$val[0]]) ||
+                                 $this->_dbcomponents[$val[0]]['c'] != $val[1];
                       if($all || in_array('type',$fields)) $row['type'] = 0;
                       if($all || in_array('child',$fields)) $row['child'] = $child;
-                      if($all || in_array('service',$fields)) $row['service'] = $val[0];
-                      if($all || in_array('parent',$fields)) $row['parent'] = $val[1];
-                      if($all || in_array('op',$fields)) $row['op'] = $val[2];
+                      if($all || in_array('service',$fields)) $row['service'] = $breaked? -1:$val[0];
+                      if($all || in_array('service_name',$fields)) $row['service_name'] = $breaked? '':$this->_dbcomponents[$val[0]]['n'];
+                      if($all || in_array('parent',$fields)) $row['parent'] = $breaked? '':$val[2];
+                      if($all || in_array('op',$fields)) $row['op'] = $val[3];
                       if($all || in_array('lfield',$fields)) $row['lfield'] = $lfield;
                       if($all || in_array('rfield',$fields)) $row['rfield'] = '';
                       if($all || in_array('tfield',$fields)) $row['tfield'] = '';
@@ -535,18 +539,20 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                    }
            } 
            if(!isset($p['type']) || ($p['type']==1)){
-               //array('TAccountService','users','COUNT','owner','idx','msgcount')
                foreach($cmp['links'][1] as $child=>$rtng)
                    foreach($rtng as $id=>$val){
                       $row = array('idx'=>"{$p['project']}.{$p['component']}.1.$child.$id");
+                      $breaked = !isset($this->_dbcomponents[$val[0]]) ||
+                                 $this->_dbcomponents[$val[0]]['c'] != $val[1];
                       if($all || in_array('type',$fields)) $row['type'] = 1;
                       if($all || in_array('child',$fields)) $row['child'] = $child;
                       if($all || in_array('service',$fields)) $row['service'] = $val[0];
-                      if($all || in_array('parent',$fields)) $row['parent'] = $val[1];
-                      if($all || in_array('op',$fields)) $row['op'] = $val[2];
-                      if($all || in_array('lfield',$fields)) $row['lfield'] = $val[3];
-                      if($all || in_array('rfield',$fields)) $row['rfield'] = $val[4];
-                      if($all || in_array('tfield',$fields)) $row['tfield'] = $val[5];
+                      if($all || in_array('service_name',$fields)) $row['service_name'] = $breaked? '':$this->_dbcomponents[$val[0]]['n'];
+                      if($all || in_array('parent',$fields)) $row['parent'] = $breaked? '':$val[2];
+                      if($all || in_array('op',$fields)) $row['op'] = $val[3];
+                      if($all || in_array('lfield',$fields)) $row['lfield'] = $val[4];
+                      if($all || in_array('rfield',$fields)) $row['rfield'] = $val[5];
+                      if($all || in_array('tfield',$fields)) $row['tfield'] = $val[6];
                       $rows[] = $row;    
                    }
            } 
@@ -576,7 +582,9 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $cmp = &$this->_dbcomponents[$v['component']];
         if(!isset($cmp['links'])) $cmp['links'] = array(0=>array(),1=>array());
         $links = &$cmp['links'];
-        $l = array($v['service'],$v['parent'],$v['op']);
+        if(!isset($this->_dbcomponents[$v['service']])) self::error(self::INDEX_NOT_EXIST,$v['service']);
+        $type = $this->_dbcomponents[$v['service']]['c'];
+        $l = array($v['service'],$type,$v['parent'],$v['op']);
         if($v['type']){ //rating
             array_push($l, $v['lfield'],$v['rfield'],$v['tfield']);
             foreach($links[1] as $child=>$def){
@@ -592,7 +600,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             if(isset($links[0][$v['child']][$v['lfield']])) self::error(self::LINK_EXISTS,$v['child'].'.'.$v['lfield']);
             $links[0][$v['child']][$v['lfield']] = $l;
             $designer = TComponent_::getDesigner((integer)$v['component'], $this->_ed_project);
-            $designer->setForignKeys($v['child'],$v['lfield'],$l[0],$l[1],$l[2]);
+            $sname = $this->_dbcomponents[$l[0]]['n'];
+            $designer->setForignKeys($v['child'],$v['lfield'],$sname,$l[2],$l[3]);
         }
         $this->_ed_project->changed = true;
     }
@@ -605,16 +614,22 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         if(!isset($cmp['links'][$idx[2]][$idx[3]][$idx[4]])) return;
         $link = &$cmp['links'][$idx[2]][$idx[3]][$idx[4]];
         $v = $args['values'];
-        if(isset($v['service'])) $link[0] = $v['service'];
-        if(isset($v['parent'])) $link[1] = $v['parent'];
-        if(isset($v['op'])) $link[2] = $v['op'];
+        if(isset($v['service'])) {
+            if(!isset($this->_dbcomponents[$v['service']])) self::error(self::INDEX_NOT_EXIST,$v['service']);
+            $link[0] = $v['service'];
+            $link[1] = $this->_dbcomponents[$v['service']]['c'];
+        }    
+        if(isset($v['parent'])) $link[2] = $v['parent'];
+        if(isset($v['op'])) $link[3] = $v['op'];
         if($idx[2]){//rating
-            if(isset($v['rfield'])) $link[4] = $v['rfield'];
-            if(isset($v['tfield'])) $link[1] = $v['tfield'];
+            if(isset($v['rfield'])) $link[5] = $v['rfield'];
+            if(isset($v['tfield'])) $link[6] = $v['tfield'];
         }
         else{//link
+            if(!isset($this->_dbcomponents[$link[0]])) self::error(self::INDEX_NOT_EXIST,$link[0]);
+            $sname = $this->_dbcomponents[$link[0]]['n'];
             $designer = TComponent_::getDesigner((integer)$idx[1], $this->_ed_project);
-            $designer->setForignKeys($idx[3],$idx[4],$link[0],$link[1],$link[2]);
+            $designer->setForignKeys($idx[3],$idx[4],$sname,$link[2],$link[3]);
         }
         $this->_ed_project->changed = true;
     }

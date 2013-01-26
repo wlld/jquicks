@@ -305,7 +305,8 @@ $l['index']++;?>
   <?}?>
   </td>
   <td><div class="link_image<? if($cmp->item($link,'op')=='SET NULL'){?> NULL<?}else{?> <? echo($cmp->item($link,'op'))?><?}?>"></div></td>
-  <td><? echo($cmp->item($link,'service'))?>.<wbr><? echo($cmp->item($link,'parent'))?><? if($cmp->item($link,'type')){?>.<wbr><? echo($cmp->item($link,'tfield'))?><?}?>
+  <? $brake=$cmp->item($link,'service_name')==''; ?>
+  <td><? if($cmp->item($link,'service_name')!=''){?><? echo($cmp->item($link,'service_name'))?>.<wbr><? echo($cmp->item($link,'parent'))?><? if($cmp->item($link,'type')){?>.<wbr><? echo($cmp->item($link,'tfield'))?><?}?><?}else{?>???<?}?>
   </td>
 </tr>
 <?}?>
