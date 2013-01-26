@@ -1,0 +1,4 @@
+<components>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="components" type="object">[]</prp>
+</components>

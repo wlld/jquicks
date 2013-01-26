@@ -1,0 +1,4 @@
+<component class = 'TLoginDialog'>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="show_loader" type="boolean">1</prp>
+</component>

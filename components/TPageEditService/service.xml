@@ -1,0 +1,92 @@
+<service name="TPageEditService">
+  <model name="page" desc="Список страниц проекта" delete="1">
+     <field name="idx" desc="Уникальный индекс" type="INTEGER" fetch="1" />
+     <field name="js" desc="Пользовательский JavaScript-код страницы" type="CHAR" fetch="1" update="1" />
+     <field name="php" desc="Пользовательский PHP-код страницы" type="CHAR" fetch="1" update="1"/>
+     <field name="tree" desc="Дерево (структура) страницы" type="CHAR" fetch="1" />
+     <field name="name" desc="Имя страницы" type="CHAR" fetch="1" insert="2" />
+     <field name="project" desc="Имя проекта" type="CHAR" insert="2" />
+     <field name="params" desc="Параметры запроса" type="CHAR" insert="1" fetch="1" update="1"/>
+     <param name="project" desc="Имя проекта" type="CHAR" required="1"/>
+     <param name="page" desc="Имя страницы" type="CHAR" />
+  </model>
+  <model name="component" desc="Список компонентов" delete="0">
+    <field name="idx" desc="Уникальный индекс" type="INTEGER" fetch="1" />
+    <field name="css" desc="Таблица стилей визуального компонента" type="CHAR" fetch="1" update="1" />
+    <field name="tpl" desc="Текст шаблона визуального компонента" type="CHAR" fetch="1" update="1"/>
+    <field name="name" desc="Имя компонента (значение свойства с именем name)" type="CHAR" fetch="1" />
+    <field name="type" desc="Имя класса компонента" type="CHAR" fetch="1" />
+    <field name="group" desc="Группа компонента(0-TComponent; 1-TVidget; 2-TDBService )" type="INTEGER" fetch="1" />
+
+    <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+    <param name="page" desc="Имя страницы" type="CHAR" required="1" />
+    <param name="type" desc="Тип отбираемых компонентов" type="CHAR" />
+    <param name="component" desc="Идентификатор компонента" type="INTEGER" />
+    <param name="exclude" desc="Список исключаемых из отбора классов" type="CHAR" />
+    <param name="set" desc="Подмножество компонентов (NOT_IN_PAGE)" type="CHAR" />
+    <param name="order" desc="Порядок сортировки компонентов (SMART)" type="CHAR" />
+  </model>
+  <model name="properties" desc="Список всех свойств компонента" delete="0">
+    <field name="idx" desc="Уникальный индекс (&lt;имя проекта&gt;.&lt;индекс компонента&gt;)" type="CHAR" fetch="1" />
+    <field name="n" desc="Имя свойства" type="CHAR" fetch="1" />
+    <field name="t" desc="Тип данных" type="CHAR" fetch="1" />
+    <field name="o" desc="Массив возможных значений в формате json" type="CHAR" fetch="1" />
+    <field name="v" desc="Значение" type="ANY" fetch="1" update="1"/>
+    <field name="d" desc="Краткое описание свойства" type="CHAR" fetch="1" />
+    <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+    <param name="page" desc="Имя страницы" type="CHAR" required="1" />
+    <param name="component" desc="Идентификатор компонента" type="INTEGER" required="1" />
+  </model>
+  <model name="files" desc="Список загруженных пользователем файлов">
+    <field name="idx" desc="Уникальный индекс (&lt;имя проекта&gt;.&lt;имя компонента&gt;.&lt;имя файла&gt;)" type="CHAR" fetch="1" />
+    <field name="project" desc="Имя проекта" type="CHAR" insert="2" />
+    <field name="component" desc="Имя компонента" type="CHAR" insert="2" />
+    <field name="filename" desc="Имя файла" type="CHAR" fetch="1"  insert="2"/>
+    <field name="filesize" desc="Размер файла" type="CHAR" fetch="1" />
+    <field name="data" desc="Данные файла в кодировке base-64" type="CHAR" insert="2"/>
+    
+    <param name="project" type="CHAR" required="1" desc="Имя проекта"/>
+    <param name="component" type="CHAR" required="0" desc="Имя компонента"/>
+  </model>
+ 
+  <model name="links" desc="Список ссылок службы">
+    <field name="idx" desc="Уникальный индекс" type="CHAR" fetch="1" />
+    <field name="type" desc="0-forign key|1-rating" type="INTEGER" fetch="1" insert="2" />
+    <field name="child" desc="Имя дочерней модели" type="CHAR" insert="2" fetch="1"/>
+    <field name="service" desc="Имя родительского сервиса" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="parent" desc="Имя родительской модели" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="op" desc="delete_mode для forign_key или operation для rating" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="lfield" desc="Имя ссылочного поля" type="CHAR" insert="2" fetch="1"/>
+    <field name="rfield" desc="Имя поля - источника рейтинга (только для ratings)" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="tfield" desc="Имя поля рейтинга" type="CHAR" insert="2" fetch="1" update="1"/>
+    <field name="project" desc="Имя проекта" type="CHAR" insert="2"/>
+    <field name="component" desc="Идентификатор компонента" type="INTEGER" insert="2"/>
+    
+    <param name="project" type="CHAR" required="1" desc="Имя проекта"/>
+    <param name="component" type="INTEGER" required="1" desc="Идентификатор компонента"/>
+    <param name="type" type="INTEGER" required="0" desc="Тип ссылки. Если не задан, то выбираются все. Если Задан, то выбираются только ссылки данного типа"/>
+  </model>
+
+  <command name="getCFGTree" desc="Получить синтаксическое дерево шаблона (для отладки)">
+      <param name="tpl" desc="Текст шаблона" type="CHAR" required="1" />
+  </command>
+  <command name="addComponent" desc="Добавить новый компонент на страницу.
+   Если задан параметр 'type', то происходит вставка нового компонента. Если задан параметр 'name',
+   то на страницу помещается существующий компонент с заданным именем.">
+      <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+      <param name="page" desc="Имя страницы, в которую будет вставлен компонент" type="CHAR" required="1" />
+      <param name="parent" desc="Идентификатор контейнера, в который будет вставлен компонент" type="INTEGER" required="1" />
+      <param name="section" desc="Номер секции контейнера" type="INTEGER" required="1" />
+      <param name="order" desc="Порядковый номер в секции" type="INTEGER" required="1" />
+      <param name="type" desc="Имя класс нового компонента" type="CHAR" />
+      <param name="name" desc="Имя существующего компонента для вставки его как общего" type="CHAR" />
+  </command>
+  <command name="deleteComponent" desc="Удалить компонент">
+      <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+      <param name="page" desc="Имя страницы, из которой будет удалён компонент" type="CHAR" required="1" />
+      <param name="parent" desc="Идентификатор контейнера, из которого будет удалён компонент" type="INTEGER" required="1" />
+      <param name="section" desc="Номер секции контейнера" type="INTEGER" required="1" />
+      <param name="order" desc="Порядковый номер в секции" type="INTEGER" required="1" />
+      <param name="component" desc="Идентификатор удаляемого компонента" type="INTEGER" required="1" />
+  </command>
+</service>

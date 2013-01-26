@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service name="TDiscussService">
+  <model name="messages" desc="Список всех сообщений" delete="1">
+     <field name="idx" desc="Уникальный индекс сообщения" type="INTEGER" fetch="1" />
+     <field name="subject" link="." desc="Идентификатор темы обсуждения" type="INTEGER" fetch="1" insert="1" update="1" />
+     <field name="owner" link="TAccountService.users" desc="Идентификатор владельца сообщения (автора)" type="INTEGER" fetch="1" insert="0" update="1" />
+     <field name="date" desc="Дата создания сообщения" type="CHAR" fetch="1" insert="0" update="1"/>
+     <field name="title" desc="Заголовок сообщения" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="text" desc="Текст сообщения" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="parent" desc="Идентификатор сообщения, на которое данное сообщение является ответом" type="INTEGER" fetch="1" insert="1" update="1" />
+     <field name="visible" desc="Признак видимости сообщения" type="INTEGER" fetch="1" insert="1" update="1" />
+     <field name="ip" desc="IP-адрес, с которого было отправлено сообщение" type="CHAR" fetch="1" insert="0" update="1" />
+
+     <param name="idx" desc="Уникальный индекс сообщения" type="INTEGER" required="0">-1</param>
+     <param name="subject" desc="Идентификатор темы" type="INTEGER" required="0">-1</param>
+     <param name="filters" desc="Условия фильтрации записей" type="CHAR" required="0" />
+     <param name="order" desc="Полядок сортировки" type="CHAR" required="0" >date ASC</param>
+  </model>
+  <table name="messages" type="InnoDB">
+      <tfield name="idx" type="INT UNSIGNED NOT NULL" auto="1" desc=""/>
+      <tfield name="subject" type="INT UNSIGNED" desc=""/>
+      <tfield name="owner" type="INT UNSIGNED" desc=""/>
+      <tfield name="date" type="DATETIME NOT NULL" desc=""/>
+      <tfield name="title" type="VARCHAR(255) NOT NULL" desc=""/>
+      <tfield name="text" type="TEXT NOT NULL" desc=""/>
+      <tfield name="parent" type="INT UNSIGNED NOT NULL" desc=""/>
+      <tfield name="visible" type="BOOL NOT NULL" desc="">true</tfield>
+      <tfield name="ip" type="CHAR(12) NOT NULL" desc=""/>
+      <index>subject</index>
+  </table>
+</service>

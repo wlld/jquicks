@@ -1,0 +1,4 @@
+<component>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="sections" type="integer">1</prp>
+</component>

@@ -1,0 +1,10 @@
+<components>
+    <prp name='service' type='component(TService)' />
+    <prp name='model' type='string' />
+    <prp name='fields' type='object'>[]</prp>
+    <prp name='first' type='integer'>0</prp>
+    <prp name='limit' type='integer'>0</prp>
+    <prp name='params' type='object'>[]</prp>
+    <prp name='import' type='list["none","class","data"]'>none</prp>
+    <prp name='calcfields' type='text' />
+</components>

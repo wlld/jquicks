@@ -1,0 +1,7 @@
+<components>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="changable" type="boolean">0</prp>
+    <prp name="pages" type="object">[]</prp>
+    <prp name="visibility" type="object">[]</prp>
+    <prp name="active" type="integer">0</prp>
+</components>

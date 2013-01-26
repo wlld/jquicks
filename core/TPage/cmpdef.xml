@@ -1,0 +1,7 @@
+<component>
+    <prp name="title" type="string" />
+    <prp name="keywords" type="string" />
+    <prp name="description" type="string" />
+    <prp name="P3P" type="string" />
+    <prp name="sections" type="integer">1</prp>
+</component>

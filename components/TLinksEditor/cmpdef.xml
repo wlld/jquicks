@@ -1,0 +1,11 @@
+<component>
+    <prp name="speededitor" type="component(TLinkSpeedEditor)"></prp>
+    <prp name="checker" type="component(TLinksCheckingDialog)"></prp>
+    <embed name="model" type="TModel">
+        <prpval name="service">TPageEditService</prpval>
+        <prpval name="model">links</prpval>
+        <prpval name="fields">[]</prpval>
+        <prpval name="import">class</prpval>
+        <prpval name="params">{}</prpval>
+    </embed>
+</component>

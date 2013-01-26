@@ -1,0 +1,5 @@
+<components>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="updatible" type="boolean">0</prp>
+    <prp name="tag" type="string" />
+</components>

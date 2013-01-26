@@ -1,0 +1,17 @@
+.section{
+  border: #555 1px solid;
+  padding:2px;
+}
+.ajax_loader{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  background-color:#fff;
+  background-image:url(/projects/site/data/image/ajax-loader.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+  opacity:0.8;
+}

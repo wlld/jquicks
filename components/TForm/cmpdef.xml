@@ -1,0 +1,7 @@
+<components>
+    <prp name='model' type='component(TModel)' />
+    <prp name="display" type="boolean">1</prp>
+    <prp name="updatible" type="boolean">0</prp>
+    <prp name="view_model" type="component(TModel)" />
+    <prp name="show_loader" type="boolean">1</prp>
+</components>

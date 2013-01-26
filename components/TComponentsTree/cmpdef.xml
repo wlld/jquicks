@@ -1,0 +1,13 @@
+<components>
+    <prp name="display" type="boolean">1</prp>
+    <prp name="action_server" type="component(TActionServer)" />
+    <prp name="edit_service" type="component(TPageEditService)" />
+    <model name="treemodel">
+        <prp name="action_server" value="action_server" />
+        <prp name="service" value="edit_service" />
+        <prp name="model">page</prp>
+        <prp name="params">{}</prp>
+        <prp name="fields">["tree"]</prp>
+        <prp name="import">data</prp>
+    </model>
+</components>

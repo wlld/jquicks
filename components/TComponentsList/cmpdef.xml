@@ -1,0 +1,12 @@
+<components>
+    <prp name="action_server" type="component(TActionServer)" />
+    <prp name="edit_service" type="component(TPageEditService)" />
+    <model name="model">
+        <prp name="action_server" value="action_server" />
+        <prp name="service" value="edit_service" />
+        <prp name="model">component</prp>
+        <prp name="params">{"exclude":"TContainer","order":"SMART","set":"NOT_IN_PAGE"}</prp>
+        <prp name="fields">["name","type","group"]</prp>
+        <prp name="import">class</prp>
+    </model>
+</components>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name = "TLinkSpeedEditor">
+    <embed name="mchild" type="TCacheModel">
+        <prpval name="service">TServiceController</prpval>
+        <prpval name="model">models</prpval>
+        <prpval name="fields">["name"]</prpval>
+        <prpval name="import">class</prpval>
+    </embed>
+    <embed name="mlfield" type="TModel">
+        <prpval name="service">TServiceController</prpval>
+        <prpval name="model">fields</prpval>
+        <prpval name="fields">["name","link"]</prpval>
+        <prpval name="import">class</prpval>
+        <prpval name="params">{"link":true}</prpval>
+    </embed>
+    <embed name="mservice" type="TModel">
+        <prpval name="service">TPageEditService</prpval>
+        <prpval name="model">component</prpval>
+        <prpval name="fields">["name","type"]</prpval>
+        <prpval name="import">class</prpval>
+    </embed>
+    <embed name="mparent" type="TCacheModel">
+        <prpval name="service">TServiceController</prpval>
+        <prpval name="model">models</prpval>
+        <prpval name="fields">["name"]</prpval>
+        <prpval name="import">class</prpval>
+    </embed>
+</component>

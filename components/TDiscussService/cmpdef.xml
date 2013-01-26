@@ -1,0 +1,3 @@
+<components>
+    <prp name='auth_required' type='boolean'>0</prp>
+</components>

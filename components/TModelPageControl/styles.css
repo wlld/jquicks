@@ -1,0 +1,20 @@
+#name{
+  border: #555 1px solid;
+  background-color: #EEE;
+  text-align:center;
+  padding:2px;
+}
+#name li{
+  display:inline;
+  cursor:pointer;
+}
+#name .selected{
+  font-weight:bold;
+  cursor:default;
+  text-decoration:underline;
+  color:blue;
+}
+#name ul{
+  margin:0;
+  padding:0;
+}

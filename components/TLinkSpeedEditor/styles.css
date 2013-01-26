@@ -1,0 +1,40 @@
+#name{
+  position:absolute;
+  left: 50%;
+  top: 50%;
+  width:620px;
+  margin-left:-310px;
+  border: #555 1px solid;
+  background-color: #FFF;
+  font-size:12px;
+  z-index:1000;
+  display:none;
+  background-color:#DDD;
+}
+#name header{
+  height:26px;
+  background-color: #F5F5F5;
+}
+#name .formfield{
+  width:125px;
+  display:inline-block;
+  margin:5px;
+}
+#name fieldset{
+margin-top:10px;
+}
+#name .link_image{
+  display:inline-block;
+  vertical-align:bottom;
+  margin-bottom:10px;
+}
+#name form{
+  padding:10px;
+}
+#name select, #name .formfield input{
+  width:100%;
+  float:right;
+}
+#name button:nth-child(3){
+  float:right;
+}

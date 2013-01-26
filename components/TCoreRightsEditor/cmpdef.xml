@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name = "TCoreRightsEditor">
+    <prp name="display" type="boolean">1</prp>
+    <prp name="service" type="string" />
+    <embed name="mmodels" type="TModel">
+        <prpval name="service">TServiceController</prpval>
+        <prpval name="model">models</prpval>
+        <prpval name="fields">["name"]</prpval>
+        <prpval name="import">data</prpval>
+    </embed>
+    <embed name="mfields" type="TModel">
+        <prpval name="service">TServiceController</prpval>
+        <prpval name="model">fields</prpval>
+        <prpval name="fields">["name","model","fetch","update","insert","desc"]</prpval>
+        <prpval name="import">data</prpval>
+    </embed>
+    <embed name="mgroups" type="TModel">
+        <prpval name="service">TAccountService</prpval>
+        <prpval name="model">groups</prpval>
+        <prpval name="fields">["name"]</prpval>
+        <prpval name="import">data</prpval>
+    </embed>
+    <embed name="mrights" type="TModel">
+        <prpval name="service">TAccountService</prpval>
+        <prpval name="model">rights</prpval>
+        <prpval name="import">data</prpval>
+        <prpval name="calcfields">filter=0</prpval>
+    </embed>
+</component>

@@ -1,0 +1,4 @@
+<components>
+    <prp name='model' type='component(TModel)' />
+    <prp name='enabled' type='boolean'>1</prp>
+</components>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service name="TForumService">
+  <model name="topics" desc="Список тем обсуждения" delete="1">
+     <field name="idx" desc="Уникальный индекс темы" type="INTEGER" fetch="1" />
+     <field name="owner" link="TAccountService.users" desc="Идентификатор владельца темы (создателя)" type="INTEGER" fetch="1" insert="0" update="1" />
+     <field name="date" desc="Дата создания темы" type="CHAR" fetch="1" insert="0" update="1"/>
+     <field name="title" desc="Заголовок темы" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="descr" desc="Краткое описание темы" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="visible" desc="Признак видимости темы" type="INTEGER" fetch="1" insert="1" update="1" />
+
+     <param name="idx" desc="Уникальный индекс темы" type="INTEGER" required="0" />
+  </model>
+  <table name="topics" type="InnoDB">
+      <tfield name="idx" type="INT UNSIGNED NOT NULL" auto="1" desc=""/>
+      <tfield name="owner" type="INT UNSIGNED NULL" desc=""/>
+      <tfield name="date" type="DATETIME NOT NULL" desc=""/>
+      <tfield name="title" type="VARCHAR(255) NOT NULL" desc=""/>
+      <tfield name="descr" type="VARCHAR(255) NOT NULL" desc=""/>
+      <tfield name="visible" type="BOOL NOT NULL" desc="">true</tfield>
+  </table>
+</service>

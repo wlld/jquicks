@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service name="TAccountService">
+  <model name="users" desc="Список всех зарегистрированных пользователей" delete="1">
+     <field name="idx" desc="Уникальный индекс" type="INTEGER" fetch="1" />
+     <field name="login" desc="Логин пользователя" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="password" desc="MD5-хэш пароля пользователя" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="name" desc="Отображаемое имя пользователя" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="regdate" desc="Дата регистрации" type="CHAR" fetch="1" update="1"/>
+     <field name="groups" desc="Список групп, в которые входит пользователь" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="email" desc="Адрес электронной почты" type="CHAR" fetch="1" insert="1" update="1"/>
+     <field name="active" desc="Признак активности учётной записи" type="INTEGER" fetch="1" insert="1" update="1">0</field>
+     <field name="pub_key" desc="Код подтверждения регистрации" type="CHAR" fetch="1" insert="1" update="1" />
+
+     <param name="idx" desc="Индекс пользователя" type="INTEGER" required="0">-1</param>
+  </model>
+  <model name="groups" desc="Список всех групп пользователей" delete="1">
+    <field name="idx" desc="Уникальный индекс" type="INTEGER" fetch="1" />
+    <field name="name" desc="Имя группы" type="CHAR" fetch="1" insert="1" update="1"/>
+    <field name="descr" desc="Описание группы" type="CHAR" fetch="1" insert="1" update="1"/>
+
+    <param name="idx" desc="Индекс группы" type="INTEGER" required="0">-1</param>
+  </model>
+  <model name="rights" desc="Права доступа к моделям и командам служб" delete="1">
+    <field name="idx" type="INTEGER" desc="Индекс" fetch="1"/>
+    <field name="service" type="INTEGER" desc="Идентификатор компонента сервиса" insert="2" fetch="1"/>
+    <field name="group" type="INTEGER" desc="Идентификатор группы по модели groups TAccountServer" insert="2" fetch="1"/>
+    <field name="model" type="CHAR" desc="Имя модели" insert="2" fetch="1"/>
+    <field name="fetch-group" type="CHAR" desc="Поля, доступные для чтения членам группы" insert="1" fetch="1" update="1"/>
+    <field name="fetch-owner" type="CHAR" desc="Поля, доступные для чтения только владельцу" insert="1" fetch="1" update="1"/>
+    <field name="update-group" type="CHAR" desc="Поля, доступные для изменения членам группы" insert="1" fetch="1" update="1"/>
+    <field name="update-owner" type="CHAR" desc="Поля, доступные для изменения только владельцу" insert="1" fetch="1" update="1"/>
+    <field name="remove-group" type="INTEGER" desc="Признак допустимости удаления записей членам группы (0|1)" insert="1" fetch="1" update="1"/>
+    <field name="remove-owner" type="INTEGER" desc="Признак допустимости удаления записей владельцу (0|1)" insert="1" fetch="1" update="1"/>
+    <field name="insert-group" type="INTEGER" desc="Признак допустимости добавления записей членам группы (0|1)" insert="1" fetch="1" update="1"/>
+    
+    <param name="idx" type="INTEGER" desc="Индекс в формате &lt;model&gt;.&lt;group&gt;" required="0" >-1</param>
+    <param name="service" type="INTEGER" desc="Идентификатор компонента сервиса" required="0">-1</param>
+    <param name="group" type="INTEGER" desc="Список идентификаторов групп (через запятую)" required="0" >-1</param>
+    <param name="model" type="CHAR" desc="Имя модели" required="0" />
+</model>
+  <command name="authenticatePhase1" desc="Запуск фазы 1 процесса аутентификации пользователя">
+      <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
+  </command>
+  <command name="authenticatePhase2" desc="Запуск фазы 2 процесса аутентификации пользователя">
+      <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
+      <param name="pass" desc="MD5(MD5(пароль)+публичный ключ)" type="CHAR" required="1" />
+      <param name="rm" desc="Признак необходимости запоминания сесии" type="INTEGER">0</param>
+  </command>
+  <command name="logout" desc="Окончание текущей сесии" />
+  <table name="users" type="InnoDB">
+      <tfield name="idx" type="INT UNSIGNED" auto="1" desc=""/>
+      <tfield name="login" type="CHAR(20)" desc=""/>
+      <tfield name="password" type="VARCHAR(32)" desc=""/>
+      <tfield name="name" type="VARCHAR(50)" desc=""/>
+      <tfield name="regdate" type="DATETIME" desc=""/>
+      <tfield name="groups" type="VARCHAR(255)" desc="">2</tfield>
+      <tfield name="email" type="VARCHAR(50)" desc=""/>
+      <tfield name="active" type="TINYINT" desc=""/>
+      <tfield name="pub_key" type="VARCHAR(32)" desc=""/>
+      <index unique="1">login</index>
+  </table>
+  <table name="groups" type="InnoDB">
+      <tfield name="idx" type="INT UNSIGNED" auto="1" desc=""/>
+      <tfield name="name" type="CHAR(50)" desc=""/>
+      <tfield name="descr" type="CHAR(255)" desc=""/>
+  </table>
+  <table name="sessions" type="MyISAM">
+      <tfield name="idx" type="CHAR(32)" desc=""/>
+      <tfield name="user_idx" type="INT UNSIGNED" desc=""/>
+      <tfield name="ip" type="CHAR(15)" desc=""/>
+      <tfield name="uagent" type="CHAR(255)" desc=""/>
+      <tfield name="expire" type="DATETIME" desc=""/>
+      <tfield name="last_active" type="DATETIME" desc=""/>
+  </table>
+  <table name="rights" type="InnoDB">
+      <tfield name="idx" type="SMALLINT UNSIGNED" auto="1" desc=""/>
+      <tfield name="service" type="CHAR(30) NOT NULL" desc=""/>
+      <tfield name="model" type="CHAR(30) NOT NULL" desc=""/>
+      <tfield name="group" type="INT UNSIGNED NOT NULL" desc=""/>
+      <tfield name="fetch-group" type="TEXT NOT NULL" desc=""/>
+      <tfield name="fetch-owner" type="TEXT NOT NULL" desc="" />
+      <tfield name="update-group" type="TEXT NOT NULL" desc=""/>
+      <tfield name="update-owner" type="TEXT NOT NULL" desc=""/>
+      <tfield name="remove-group" type="TINYINT NOT NULL" desc="" />
+      <tfield name="remove-owner" type="TINYINT NOT NULL" desc=""/>
+      <tfield name="insert-group" type="TINYINT NOT NULL" desc=""/>
+      <index unique="1">`service`,`model`,`group`</index>
+  </table>
+</service>

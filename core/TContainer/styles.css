@@ -1,0 +1,7 @@
+#name {
+  text-align:center;
+}
+#name .section{
+  border: #555 1px solid;
+  padding:2px;
+}

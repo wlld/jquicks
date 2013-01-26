@@ -1,0 +1,78 @@
+<service name="TServiceHelper">
+    <model name="models" desc="Список моделей">
+        <field name="idx" desc="Уникальный индекс. Соответствует имени модели" type="CHAR" fetch="1" />
+        <field name="name" desc="Имя моделя" type="CHAR" fetch="1"/>
+        <field name="desc" desc="Краткое описание модели" type="CHAR" fetch="1"/>
+        <field name="delete" desc="Признак поддержки моделью возможности удаления записей" type="INTEGER" fetch="1"/>
+
+        <param name="service" descr="" type="CHAR" required="1" />
+        <param name="model" descr="" type="CHAR" required="0" />
+    </model>
+    <model name="fields" desc="Список полей моделей">
+        <field name="idx" desc="Уникальный индекс (&lt;имя модели&gt;.&lt;имя поля&gt;)" type="INTEGER" fetch="1" />
+        <field name="name" desc="Имя поля" type="CHAR" fetch="1"/>
+        <field name="desc" desc="Краткое описание поля" type="CHAR" fetch="1"/>
+        <field name="type" desc="Тип данных поля" type="CHAR" fetch="1"/>
+        <field name="fetch" desc="Признак возможности получения значения поля командой fetch" type="INTEGER" fetch="1"/>
+        <field name="insert" desc="Признак возможности установки значения поля командой insert" type="INTEGER" fetch="1"/>
+        <field name="update" desc="Признак возможности обновления значения поля командой update" type="INTEGER" fetch="1"/>
+        <field name="model" desc="Имя модели, к которой принадлежит поле" type="CHAR" fetch="1"/>
+        <field name="link" desc="Определение ссылки {'&lt;имя класса&gt;','&lt;имя моделя&gt;'}" type="OBJECT" fetch="1"/>
+
+        <param name="service" desc="" type="CHAR" required="1" />
+        <param name="model" desc="" type="CHAR" required="0" />
+        <param name="link" desc="Если true, по отбираются только ссылочные поля" type="BOOLEAN" required="0" />
+    </model>
+    <model name="fetchparams" desc="Список параметров команд fetch">
+        <field name="idx" desc="Уникальный индекс (&lt;имя модели&gt;.&lt;имя параметра&gt;)" type="INTEGER" fetch="1" />
+        <field name="name" desc="" type="CHAR" fetch="1"/>
+        <field name="desc" desc="" type="CHAR" fetch="1"/>
+        <field name="type" desc="" type="CHAR" fetch="1"/>
+        <field name="required" desc="" type="INTEGER" fetch="1"/>
+        <field name="model" desc="" type="CHAR" fetch="1"/>
+        <field name="value" desc="Значение по умолчанию" type="ANY" fetch="1"/>
+
+        <param name="service" desc="" type="CHAR" required="1" />
+        <param name="model" desc="Имя модели. Если не указано, то возвращаются поля всех моделей" type="CHAR" />
+    </model>
+    <model name="cmdparams" desc="Список параметров команды">
+        <field name="idx" desc="Уникальный индекс (&lt;имя команды&gt;.&lt;имя параметра&gt;)" type="INTEGER" fetch="1" />
+        <field name="name" desc="" type="CHAR" fetch="1"/>
+        <field name="desc" desc="" type="CHAR" fetch="1"/>
+        <field name="required" desc="" type="INTEGER" fetch="1"/>
+        <field name="command" desc="" type="CHAR" fetch="1"/>
+        <field name="value" desc="Значение по умолчанию" type="ANY" fetch="1"/>
+        <field name="pcount" desc="Количество параметров" type="INTEGER" fetch="1"/>
+
+        <param name="service" desc="" type="CHAR" required="1" />
+        <param name="command" desc="Имя команды. Если не указано, то возвращаются параметры всех команд" type="CHAR" />
+    </model>
+    <model name="commands" desc="Список команд">
+        <field name="idx" desc="Уникальный индекс" type="INTEGER" fetch="1" />
+        <field name="name" desc="" type="CHAR" fetch="1"/>
+        <field name="desc" desc="" type="CHAR" fetch="1"/>
+
+        <param name="service" desc="" type="CHAR" required="1" />
+        <param name="command" desc="Имя команды. Если не указано, то возвращаются все команды" type="CHAR" />
+    </model>
+    <command name='compileServiceXML' desc="Компилировать файл описания службы">
+      <param name="service" desc="Имя класса компонента сервиса" type="CHAR" required="1" />
+    </command>
+    <command name='testRefIntegrity' desc="Проверка ссылочной целостности таблиц">
+      <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+      <param name="cservice" desc="Имя дочернего сервиса" type="CHAR" required="1" />
+      <param name="child" desc="Имя дочерней модели" type="CHAR" required="1" />
+      <param name="lfield" desc="Имя ссылочного свойства" type="CHAR" required="1" />
+      <param name="service" desc="Имя родительского сервиса" type="CHAR" required="1" />
+      <param name="parent" desc="Имя родительской модели" type="CHAR" required="1" />
+    </command>
+    <command name='makeRefIntegrity' desc="Приведение двух таблиц в состояние ссылочной целостности">
+      <param name="project" desc="Имя проекта" type="CHAR" required="1" />
+      <param name="cservice" desc="Имя дочернего сервиса" type="CHAR" required="1" />
+      <param name="child" desc="Имя дочерней модели" type="CHAR" required="1" />
+      <param name="lfield" desc="Имя ссылочного свойства" type="CHAR" required="1" />
+      <param name="service" desc="Имя родительского сервиса" type="CHAR" required="1" />
+      <param name="parent" desc="Имя родительской модели" type="CHAR" required="1" />
+      <param name="mode" desc="Режим (DELETE|NULL)" type="CHAR" required="1" />
+    </command>
+</service>
