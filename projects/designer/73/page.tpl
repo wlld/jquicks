@@ -78,6 +78,7 @@ JQuicks 1.0.0a4
 <h1>Проекты</h1>
 <ul>
   <li><a href="/projects/designer/pages.php?project=designer">Дизайнер</a></li>
-  <li><a href="/projects/designer/pages.php">Ватерлиния</a></li>
+  <li><a href="/projects/designer/pages.php?project=waterline">Ватерлиния</a></li>
+  <li><a href="/projects/designer/pages.php?project=test">Тест</a></li>
 </ul>
 <!--projects-->
