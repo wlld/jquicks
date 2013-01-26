@@ -15,9 +15,9 @@ class TDataBase extends TComponent{
     }
     private function connect(){
         $host = '127.0.0.1';
-        $dbname = $this->database;
-        $user = $this->user;
-        $password = $this->password;
+        $dbname = $this->project->getProjectVar('database');// database;
+        $user = $this->project->getProjectVar('dbusername');//$this->user;
+        $password = $this->project->getProjectVar('dbpassword');//$this->password;
         try{
             $db = new PDO("mysql:host=$host;dbname=$dbname", $user, $password,array(PDO::ATTR_PERSISTENT=>(boolean)$this->persistent));
         }

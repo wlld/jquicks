@@ -4,6 +4,7 @@
 {{assign var=limit value=$model->limit}}
 {{assign var=pnum value=($limit>0)?ceil($model->count/$limit):1}}
 {{assign var=page value=($limit>0)?ceil(($model->first+1)/$limit):0}}
+{{if $pnum>1}}
 <ul>
 {{for start=1 max=$pnum+1 name=loop}}
   <li
@@ -13,5 +14,6 @@
   >{{$loop[index]}}</li>
 {{/for}}
 </ul>
+{{/if}}
 {{/if}}
 {{/if}}

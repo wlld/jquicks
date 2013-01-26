@@ -1,6 +1,3 @@
 <components>
-    <prp name='database' type='string' />
-    <prp name='user' type='string'>root</prp>
-    <prp name='password' type='string' />
     <prp name='persistent' type='boolean' >1</prp>
 </components>

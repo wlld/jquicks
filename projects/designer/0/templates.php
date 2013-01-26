@@ -1,4 +1,4 @@
-<?php function index_template($cmp){?>
+<?php function pages_template($cmp){?>
 <div>
   <div><a href="/projects/designer/changelog.php">Jquicks v1.0a3</a></div>
   <div><? $cmp->drawSection(0) ?></div>

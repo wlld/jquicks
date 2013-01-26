@@ -1,0 +1,17 @@
+/*index*/
+body {
+  margin:0px;
+  padding:0px;
+  font-family:Arial,sans-serif,Helvetica,Verdana,Geneva;
+  font-size:16px;
+}
+
+/*index*/
+/*cap*/
+#cap{
+  border: #555 1px solid;
+  background-color: #F5F5F5;
+  text-align:center;
+  margin:10px;
+}
+/*cap*/

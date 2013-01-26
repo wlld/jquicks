@@ -3,7 +3,7 @@ array (
   'components' =>array (
     0 =>array (
       'c' => 'TPage',
-      'n' => 'index',
+      'n' => 'pages',
       'l' =>array (
         0 => 1,
       ),
@@ -469,6 +469,7 @@ array (
         0 => 1,
         20 => 1,
         57 => 1,
+        73 => 1,
       ),
       'p' =>array (
       ),
@@ -1685,9 +1686,355 @@ array (
         'mparent' => 71,
       ),
     ),
+    73 =>array (
+      'c' => 'TPage',
+      'n' => 'index',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'title' =>array (
+          0 => 'string',
+          1 => 'Main page of jquicks',
+        ),
+        'keywords' =>array (
+          0 => 'string',
+          1 => '',
+        ),
+        'description' =>array (
+          0 => 'string',
+          1 => '',
+        ),
+        'P3P' =>array (
+          0 => 'string',
+          1 => '',
+        ),
+        'sections' =>array (
+          0 => 'integer',
+          1 => 4,
+        ),
+      ),
+      's' =>array (
+        0 =>array (
+          0 => 74,
+        ),
+        1 =>array (
+          0 => 75,
+        ),
+        2 =>array (
+          0 => 85,
+          1 => 76,
+          2 => 77,
+        ),
+        3 =>array (
+          0 => 82,
+          1 => 83,
+          2 => 84,
+        ),
+      ),
+      'u' =>array (
+        0 => 19,
+        1 => 78,
+        2 => 79,
+        3 => 80,
+        4 => 81,
+      ),
+    ),
+    74 =>array (
+      'c' => 'TVidget',
+      'n' => 'logo',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    75 =>array (
+      'c' => 'TVidget',
+      'n' => 'menu',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    76 =>array (
+      'c' => 'TVidget',
+      'n' => 'shelp',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    77 =>array (
+      'c' => 'TVidget',
+      'n' => 'concept',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    78 =>array (
+      'c' => 'TDataBase',
+      'n' => 'TDataBase',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'persistent' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+      ),
+    ),
+    79 =>array (
+      'c' => 'TAccountService',
+      'n' => 'TAccountService',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'regmode' =>array (
+          0 => 'list["BASIC","E-MAIL","ADMIN"]',
+          1 => 'BASIC',
+        ),
+        'check_ip' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'ses_l_time' =>array (
+          0 => 'integer',
+          1 => 30,
+        ),
+        'security' =>array (
+          0 => 'list["on","off","training"]',
+          1 => 'off',
+        ),
+      ),
+    ),
+    80 =>array (
+      'c' => 'TDiscussService',
+      'n' => 'srv_news',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'auth_required' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    81 =>array (
+      'c' => 'TModel',
+      'n' => 'm_news',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'service' =>array (
+          0 => 'component(TService)',
+          1 => 'srv_news',
+        ),
+        'model' =>array (
+          0 => 'string',
+          1 => 'messages',
+        ),
+        'fields' =>array (
+          0 => 'object',
+          1 =>array (
+            0 => 'date',
+            1 => 'text',
+          ),
+        ),
+        'first' =>array (
+          0 => 'integer',
+          1 => 0,
+        ),
+        'limit' =>array (
+          0 => 'integer',
+          1 => 0,
+        ),
+        'params' =>array (
+          0 => 'object',
+          1 =>array (
+          ),
+        ),
+        'import' =>array (
+          0 => 'list["none","class","data"]',
+          1 => 'class',
+        ),
+        'calcfields' =>array (
+          0 => 'text',
+          1 => '',
+        ),
+      ),
+    ),
+    82 =>array (
+      'c' => 'TVidget',
+      'n' => 'news',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => 'm_news',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+      ),
+    ),
+    83 =>array (
+      'c' => 'TModelPageControl',
+      'n' => 'modelpagecontrol_1',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'model' =>array (
+          0 => 'component(TModel)',
+          1 => 'm_news',
+        ),
+        'enabled' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+      ),
+    ),
+    84 =>array (
+      'c' => 'TForm',
+      'n' => 'frm_new_news',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'model' =>array (
+          0 => 'component(TModel)',
+          1 => 'm_news',
+        ),
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
+    85 =>array (
+      'c' => 'TVidget',
+      'n' => 'projects',
+      'l' =>array (
+        73 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'updatible' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+        'view_model' =>array (
+          0 => 'component(TModel)',
+          1 => '',
+        ),
+        'show_loader' =>array (
+          0 => 'boolean',
+          1 => 0,
+        ),
+      ),
+    ),
   ),
   'names' =>array (
-    'index' => 0,
+    'pages' => 0,
     'pagetree' => 1,
     'component_editor' => 2,
     'page_editor' => 3,
@@ -1750,6 +2097,19 @@ array (
     'linkspeededitor.mlfield' => 69,
     'linkspeededitor.mservice' => 70,
     'linkspeededitor.mparent' => 71,
+    'index' => 73,
+    'logo' => 74,
+    'menu' => 75,
+    'shelp' => 76,
+    'concept' => 77,
+    'TDataBase' => 78,
+    'TAccountService' => 79,
+    'm_news' => 81,
+    'news' => 82,
+    'srv_news' => 80,
+    'modelpagecontrol_1' => 83,
+    'frm_new_news' => 84,
+    'projects' => 85,
   ),
   'classes' =>array (
     'TPage' =>array (
@@ -1818,6 +2178,22 @@ array (
       0 => 'TVidget',
     ),
     'TLinkSpeedEditor' =>array (
+      0 => 'TVidget',
+    ),
+    'TDataBase' =>array (
+    ),
+    'TAccountService' =>array (
+      0 => 'TDBService',
+      1 => 'TService',
+    ),
+    'TDiscussService' =>array (
+      0 => 'TDBService',
+      1 => 'TService',
+    ),
+    'TModelPageControl' =>array (
+      0 => 'TVidget',
+    ),
+    'TForm' =>array (
       0 => 'TVidget',
     ),
   ),

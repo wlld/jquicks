@@ -4,11 +4,13 @@ class TProject{
     const INVALID_CMP_NAME = 11;
     const CMP_NOT_EXISTS = 12;
     const AS_NOT_FOUND = 13;
+    const PROJECT_VAR_NOT_FOUND = 14;
     
     public $db;
     public $name;
     public $changed = false;
     public $path;
+    private $_vars;
     private $_file;
     private $_comp_id = array(); //Ассоциативный массив компонентв с ключами-id
     private $_comp_name = array(); //Ассоциативный массив компонентв с ключами-name
@@ -16,6 +18,7 @@ class TProject{
     function __construct($project){
         $this->path = $_SERVER['DOCUMENT_ROOT'].'/projects/'.$project;
         $file = $this->path.'/projectdb.php';
+        $this->name = $project;
         $this->_file = $file;
         if (file_exists($file)){
             $this->_loadFromPHP($file);
@@ -78,6 +81,15 @@ class TProject{
        elseif(is_integer($cmp)) return isset($this->db['components'][$cmp]);
        else return false;
     }
+    public function getProjectVar($name){
+       if(!isset($this->_vars)){
+           $varfile = $this->path.'/project.ini';
+           if(!file_exists($varfile)) $this->_vars = false;
+           else $this->_vars = parse_ini_file ($varfile);
+       }
+       if(!$this->_vars || !isset($this->_vars[$name])) self::_error(self::PROJECT_VAR_NOT_FOUND,$name,$this->name);
+       return $this->_vars[$name];
+    }
     private static function _error(){
         $a = func_get_args();
         $code = $a[0];
@@ -86,6 +98,7 @@ class TProject{
             case self::INVALID_CMP_NAME: {$msg = "Invalid component name: $a[1]"; break;}
             case self::CMP_NOT_EXISTS: {$msg = "Component '$a[1]' is not exists in the page."; break;}
             case self::AS_NOT_FOUND:{$msg = 'You must have a TAccountService component in your project to menage users data'; break;}
+            case self::PROJECT_VAR_NOT_FOUND:{$msg = 'You must define variable "'.$a[1].'" in project.ini for "'.$a[2].'" project'; break;}
             default: $msg = 'Unknown error';
         }
         throw new Exception($msg,$code);

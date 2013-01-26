@@ -38,7 +38,7 @@ class Jq {
         }
         return self::$_projects[$name];
     }
-    public static function get($name){return self::$project->getByName($name);}
+    public static function get($name){return self::$project->getByName($name,false);}
 }
 function error_handler($errno, $errstr, $errfile, $errline ){
     $msg = "$errstr IN $errfile LINE $errline";

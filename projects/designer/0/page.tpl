@@ -1,9 +1,9 @@
-<!--index-->
+<!--pages-->
 <div>
   <div><a href="/projects/designer/changelog.php">Jquicks v1.0a3</a></div>
   <div>{{section 0}}</div>
 </div>
-<!--index-->
+<!--pages-->
 <!--pagelist-->
 <ul>
 {{foreach from=pmodel->rows item=row name=lp}}

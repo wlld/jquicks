@@ -12,9 +12,9 @@ Desktop.ini
 ## Jquicks
 #############
 .htaccess
-/index.php
+project.ini
 /*.xml
 /.idea
 /nbproject/
-/projects/site/
+
 

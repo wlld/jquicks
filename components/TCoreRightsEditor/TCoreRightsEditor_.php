@@ -14,7 +14,7 @@ class TCoreRightsEditor_ extends TVidget_{
             $this->mfields->setProperty('params',"{\"service\":\"$class\"}");
         }
     } 
-    protected function static _getErrorMsg($args){
+    protected static function  _getErrorMsg($args){
         $code = $args[0];
         switch ($code){
             case self::SERVICE_NOT_FOUND: {$msg = "Service '$args[1]' does not exist.";break;}
