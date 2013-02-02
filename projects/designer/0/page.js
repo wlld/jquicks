@@ -21,3 +21,6 @@ function newPage(){
 }
 
 jq.registerEventHandler('pmodel','onfetch',[jq.get('pagelist'),'redraw']);
+jq.registerEventHandler('CActionServer','onerror',function(e){
+  alert(e.errortext);
+});

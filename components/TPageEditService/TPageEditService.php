@@ -67,8 +67,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     const NOT_A_COMPONENT = 216;
     const PAGE_NOT_FOUND = 217;
     const LINK_EXISTS = 218;
-    const RATING_FIELD_EXISTS = 219;
-    const RATING_EXISTS = 220;
+    const RATING_EXISTS = 219;
 
     const DEFAULT_DIR_MODE = 0777; //rvk
     const DEFAULT_FILE_MODE = 0644; //rvk
@@ -566,11 +565,15 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         if(!isset($this->_dbcomponents[$idx[1]])) self::error(self::INDEX_NOT_EXIST,$idx[1]);
         $cmp = &$this->_dbcomponents[$idx[1]];
         if(isset($cmp['links'][$idx[2]][$idx[3]][$idx[4]])){ 
+            $link = $cmp['links'][$idx[2]][$idx[3]][$idx[4]];
             if(!$idx[2]){
-                $link = $cmp['links'][$idx[2]][$idx[3]][$idx[4]];
                 $designer = TComponent_::getDesigner((integer)$idx[1], $this->_ed_project);
-                $designer->setForignKeys($idx[3],$idx[4],$link[0],$link[1],'NONE');
+                $designer->setForignKey($idx[3],$idx[4],$link[0],$link[1],'NONE');
             }    
+            else{
+                $parent_designer = TComponent_::getDesigner((integer)$link[0], $this->_ed_project);
+                $parent_designer->deleteRatingField($link[2],$link[6]);
+            }
             unset($cmp['links'][$idx[2]][$idx[3]][$idx[4]]);
             $this->_ed_project->changed = true;
         }    
@@ -584,24 +587,29 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $links = &$cmp['links'];
         if(!isset($this->_dbcomponents[$v['service']])) self::error(self::INDEX_NOT_EXIST,$v['service']);
         $type = $this->_dbcomponents[$v['service']]['c'];
-        $l = array($v['service'],$type,$v['parent'],$v['op']);
+        $l = array($v['service'],$type,$v['parent'],$v['op']);//0 1 2 3
         if($v['type']){ //rating
-            array_push($l, $v['lfield'],$v['rfield'],$v['tfield']);
+            array_push($l, $v['lfield'],$v['rfield'],$v['tfield']); // 4 5 6
             foreach($links[1] as $child=>$def){
                 foreach($def as $ll)
-                    if(($ll[0]==$l[0])&&($ll[1]==$l[1])&&($ll[5]==$l[5]))
-                        self::error(self::RATING_FIELD_EXISTS,$l[5],$l[0].'.'.$l[1]);
-                    if(($child==$v['child'])&&($ll[0]==$l[0])&&($ll[1]==$l[1])&&($ll[2]==$l[2])&&($ll[3]==$l[3])&&($ll[4]==$l[4]))
-                        self::error(self::RATING_EXISTS,"{$l[2]}({$l[4]})",$l[0].'.'.$l[1]);
+                    if(($child==$v['child'])&&($ll[0]==$l[0])&&($ll[2]==$l[2])&&($ll[3]==$l[3])&&($ll[4]==$l[4])&&($ll[5]==$l[5]))
+                        self::error(self::RATING_EXISTS,"{$l[3]}({$l[5]})",$l[0].'.'.$l[2]);
             }
             $links[1][$v['child']][] = $l;
+            $childs_designer = TComponent_::getDesigner((integer)$v['component'], $this->_ed_project);
+            $r_type = $childs_designer->getRatingType($v['child'],$l[5],$l[3]);
+            $parent_designer = TComponent_::getDesigner((integer)$l[0], $this->_ed_project);
+            $parent_designer->addRatingField($l[2],$l[6],$r_type);
+            $ptable = strtolower($this->_ed_project->getNameById((integer)$l[0]).'_'.$l[2]);
+            $ctable = strtolower($cmp['n'].'_'.$v['child']);
+            $parent_designer->updateAllRatings($ptable,$ctable,$l[4],$l[3],$l[5],$l[6]);
         }
         else{ //link
             if(isset($links[0][$v['child']][$v['lfield']])) self::error(self::LINK_EXISTS,$v['child'].'.'.$v['lfield']);
             $links[0][$v['child']][$v['lfield']] = $l;
             $designer = TComponent_::getDesigner((integer)$v['component'], $this->_ed_project);
             $sname = $this->_dbcomponents[$l[0]]['n'];
-            $designer->setForignKeys($v['child'],$v['lfield'],$sname,$l[2],$l[3]);
+            $designer->setForignKey($v['child'],$v['lfield'],$sname,$l[2],$l[3]);
         }
         $this->_ed_project->changed = true;
     }
@@ -613,6 +621,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $cmp = &$this->_dbcomponents[$idx[1]];
         if(!isset($cmp['links'][$idx[2]][$idx[3]][$idx[4]])) return;
         $link = &$cmp['links'][$idx[2]][$idx[3]][$idx[4]];
+        $old_link = $link;
         $v = $args['values'];
         if(isset($v['service'])) {
             if(!isset($this->_dbcomponents[$v['service']])) self::error(self::INDEX_NOT_EXIST,$v['service']);
@@ -624,12 +633,29 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         if($idx[2]){//rating
             if(isset($v['rfield'])) $link[5] = $v['rfield'];
             if(isset($v['tfield'])) $link[6] = $v['tfield'];
+            $childs_designer = TComponent_::getDesigner((integer)$idx[1], $this->_ed_project);
+            $r_type = $childs_designer->getRatingType($idx[3],$link[5],$link[3]);
+            if(isset($v['service'])||isset($v['parent'])){
+                $old_parent_designer = TComponent_::getDesigner((integer)$old_link[0], $this->_ed_project);
+                $new_parent_designer = TComponent_::getDesigner((integer)$link[0], $this->_ed_project);
+                $old_parent_designer->deleteRatingField($old_link[2],$old_link[6]);
+                $new_parent_designer->addRatingField($link[2],$link[6],$r_type);
+            }
+            else{
+                $parent_designer = TComponent_::getDesigner((integer)$link[0], $this->_ed_project);
+                $parent_designer->changeRatingField($link[2],$old_link[6],$link[6],$r_type);
+                if(isset($v['op'])||isset($v['rfield'])){
+                    $ptable = strtolower($this->_ed_project->getNameById((integer)$link[0]).'_'.$link[2]);
+                    $ctable = strtolower($cmp['n'].'_'.$idx[3]);
+                    $parent_designer->updateAllRatings($ptable,$ctable,$link[4],$link[3],$link[5],$link[6]);
+                }
+            }
         }
         else{//link
             if(!isset($this->_dbcomponents[$link[0]])) self::error(self::INDEX_NOT_EXIST,$link[0]);
             $sname = $this->_dbcomponents[$link[0]]['n'];
             $designer = TComponent_::getDesigner((integer)$idx[1], $this->_ed_project);
-            $designer->setForignKeys($idx[3],$idx[4],$sname,$link[2],$link[3]);
+            $designer->setForignKey($idx[3],$idx[4],$sname,$link[2],$link[3]);
         }
         $this->_ed_project->changed = true;
     }
@@ -654,7 +680,6 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             case self::NOT_A_COMPONENT: {$msg = 'Class "'.$args[1].'" is not derived from TComponent'; break;}
             case self::PAGE_NOT_FOUND: {$msg = 'Page with name "'.$args[1].'" not found'; break;}
             case self::LINK_EXISTS: {$msg = 'Link with "'.$args[1].'" already exists'; break;}
-            case self::RATING_FIELD_EXISTS: {$msg = 'Rating field "'.$args[1].'" in "'.$args[2].'" already exists'; break;}
             case self::RATING_EXISTS: {$msg = 'Rating "'.$args[1].'" in "'.$args[2].'" already exists'; break;}
             default: $msg = parent::_getErrorMsg($args);
         }

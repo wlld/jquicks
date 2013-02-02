@@ -29,6 +29,10 @@ jq.newClass('CLinksEditor','CVidget',{
     },
     check:function(){
         if(this.curent_index<0) return;
+        if (this.model.rows[this.curent_index].type) {
+            alert('Rating chacking is under construction');
+            return;
+        }
         var e = {
             link:this.model.rows[this.curent_index],
             project:this.model.getParam('project'),

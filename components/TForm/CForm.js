@@ -9,21 +9,23 @@ jq.newClass('CForm','CVidget',{
         this.values = {};
     },
     submit:function(){
-        var f,i,l,el,n;
+        var f,i,l,el,n,val;
         f = this.id.getElementsByTagName('FORM')[0];
+        var rows = jq.get(this.model).rows;
         for(i=0,l=f.elements.length; i<l;i++ ){
             el = f.elements[i];
             if ((n = el.name)=='') continue;
-            if((el.tagName=='SELECT') || (el.tagName=='TEXTAREA')) this.values[n] = el.value;
+            if((el.tagName=='SELECT') || (el.tagName=='TEXTAREA')) val = el.value;
             else if (el.tagName=='INPUT')
             switch (el.type){
                 case 'radio':{if(!el.checked) continue;}
                 case 'file':
                 case 'hidden':
                 case 'password':
-                case 'text':{this.values[n] = el.value; break;}
-                case 'checkbox':{this.values[n] = el.checked?1:0; break;}
+                case 'text':{val = el.value; break;}
+                case 'checkbox':{val = el.checked?1:0; break;}
             }
+            if((this.row <0)||((rows[this.row][n])!=val)) this.values[n]=val;
         }
         jq.event(this,'onsubmit',{form:this});
         return false;

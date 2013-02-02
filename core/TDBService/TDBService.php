@@ -1,4 +1,8 @@
 <?php
+define('FETCH', 0); 
+define('INSERT', 1); 
+define('UPDATE', 2); 
+define('REMOVE', 3); 
 abstract class TDBService extends TService{
     // Error codes
     const DBERROR = 201;
@@ -6,8 +10,28 @@ abstract class TDBService extends TService{
     const UNDEFINED_LINK = 203;
     const BAD_LINK_FORMAT = 204;
     const LINKED_SERVICE_NOT_FOUND = 205;
+    const LINK_FIELD_NOT_SET = 206;
     
     const SQL_DATE_FORMAT = 'Y-m-d h:i:s';
+    static $cmd_array = array('fetch','insert','update','remove');
+    static $expressions = array(
+        INSERT=>array(
+            'MIN'=>'`%1$s`=IF(`%1$s`<%2$s,`%1$s`,%2$s)',
+            'MAX'=>'`%1$s`=IF(`%1$s`>%2$s,`%1$s`,%2$s)',
+            'SUM'=>'`%1$s`=`%1$s`+%2$s',
+        ),
+        REMOVE=>array(
+            'MIN'=>'`%1$s`=IF(`%1$s`<%2$s,`%1$s`,(SELECT MIN(t.`%3$s`) FROM %4$s AS t WHERE t.`%5$s`=%6$s GROUP BY t.`%5$s`))',//tfield,rval,rfield,ctable,lfield,lval
+            'MAX'=>'`%1$s`=IF(`%1$s`>%2$s,`%1$s`,(SELECT MAX(t.`%3$s`) FROM %4$s AS t WHERE t.`%5$s`=%6$s GROUP BY t.`%5$s`))',
+            'SUM'=>'`%1$s`=`%1$s`-%2$s',
+            'COUNT'=>'`%1$s`=`%1$s`-1',
+        ),
+        UPDATE=>array(
+            'MIN'=>'`%1$s`=(SELECT MIN(t.`%3$s`) FROM %4$s AS t WHERE t.`%5$s`=p.idx GROUP BY t.`%5$s`)',//tfield,rval,rfield,ctable,lfield,lval
+            'MAX'=>'`%1$s`=(SELECT MAX(t.`%3$s`) FROM %4$s AS t WHERE t.`%5$s`=p.idx GROUP BY t.`%5$s`)',
+            'SUM'=>'`%1$s`=(SELECT SUM(t.`%3$s`) FROM %4$s AS t WHERE t.`%5$s`=p.idx GROUP BY t.`%5$s`)',
+        )
+    );
     private static $_types;
     private static $_links;
     private static $_db_tables;
@@ -25,6 +49,73 @@ abstract class TDBService extends TService{
             return $this->db;
         }
         else return parent::__get($name);
+    }
+    public function queryModel($model,$cmd,$arg){
+        $icmd = array_search($cmd, self::$cmd_array); 
+        if($icmd==FETCH || !isset($this->_linksdef[1][$model])) return parent::queryModel($model, $cmd, $arg);
+        $this->db->beginTransaction(); 
+        try{
+            if($icmd==REMOVE) $child_row = array('idx'=>$arg['index']);
+            else{
+                $result = parent::queryModel($model, $cmd, $arg);
+                $child_row = $arg['values'];
+                if($icmd==UPDATE) $child_row['idx'] = $arg['index'];
+            }
+            $ctable = strtolower($this->name.'_'.$model);
+            $rsql='';
+            foreach($this->_linksdef[1][$model] as $r){
+                list($service,$type,$parent,$op,$lfield,$rfield,$tfield) = $r;
+                if(($icmd==REMOVE)||($icmd==UPDATE)){
+                    if($icmd==REMOVE){
+                        $sql="SELECT `$lfield`,`$rfield` FROM $ctable WHERE idx={$child_row['idx']}";
+                    }
+                    else{
+                        if(!isset($child_row[$rfield]) || $op=='COUNT') continue;
+                        $sql="SELECT `$lfield` FROM $ctable WHERE idx={$child_row['idx']}";
+                    }
+                    if(($r=$this->db->query($sql))===false) $this->_dbError();
+                    $child_row += $r->fetch(PDO::FETCH_ASSOC);
+                }
+                $expr = $this->_getRatingExpression($icmd,$op,$lfield,$rfield,$tfield,$child_row,$ctable);
+                $parent_name = $this->project->getNameById($service);
+                $ptable = strtolower($parent_name.'_'.$parent);
+                $rsql .= "UPDATE $ptable AS p SET $expr WHERE idx={$child_row[$lfield]};\n";
+            }
+            if($icmd==REMOVE) $result = parent::queryModel($model, $cmd, $arg);
+            if($rsql) if ($this->db->exec($rsql)===false) $this->_dbError();
+            $this->db->commit();
+            return $result;
+        }
+        catch(Exception $e){
+            $this->db->rollBack();
+            unset($this->_updated_models[$model]);
+            throw $e;
+        }
+    }
+    private function _getRatingExpression($icmd,$op,$lfield,$rfield,$tfield,&$child_row,$ctable){
+        if($icmd==INSERT){
+            if($op==='COUNT') return "`$tfield`=`$tfield`+1";
+            else{
+                if(!isset($child_row[$rfield])){
+                    $idx = $this->db->lastInsertId();
+                    if($rfield!='idx'){
+                        $sql="SELECT `$rfield` FROM $ctable WHERE idx=$idx";
+                        if(($r=$this->db->query($sql))===false) $this->_dbError();
+                        $child_row += $r->fetch(PDO::FETCH_ASSOC);
+                    }
+                    $child_row['idx'] = $idx;
+                }
+                return sprintf(self::$expressions[$icmd][$op],$tfield,$child_row[$rfield]);
+            }
+        }
+        elseif($icmd==REMOVE){
+            return sprintf(self::$expressions[$icmd][$op],
+                $tfield,$child_row[$rfield],$rfield,$ctable,$lfield,$child_row[$lfield]
+            );
+        }
+        else{//UPDATE
+            return sprintf(self::$expressions[$icmd][$op],$tfield,'',$rfield,$ctable,$lfield);
+        }
     }
     private static function _castValue(&$val,$key){
         if(isset(self::$_types[$key])) if(self::$_types[$key]===1) $val = (int)$val;
@@ -186,10 +277,11 @@ abstract class TDBService extends TService{
             foreach(self::$_links as $link){
                 if(!isset($this->_linksdef[0][$model][$link])) self::error(self::UNDEFINED_LINK,$link);
                 $l = $this->_linksdef[0][$model][$link];
-                $cmps = $this->project->db['names'];
+                $cmps = $this->project->db['components'];
                 if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$link);
-                $table = strtolower($l[0].'_'.$l[1]); 
-                self::$_linked_tables[$l[0]][] = $l[1];
+                $sname = $cmps[$l[0]]['n'];
+                $table = strtolower($sname.'_'.$l[2]); 
+                self::$_linked_tables[$sname][] = $l[2];
                 $r .= " LEFT JOIN $table AS $link ON `$link`=$link.idx";
             }
         }
@@ -210,6 +302,7 @@ abstract class TDBService extends TService{
             case self::UNDEFINED_LINK: {$msg = 'Link "'.$args[1].'" is not defined' ;break;}
             case self::BAD_LINK_FORMAT: {$msg = 'Link "'.$args[1].'" has bad format' ;break;}
             case self::LINKED_SERVICE_NOT_FOUND: {$msg = 'Linked service not found for link "'.$args[1].'"' ;break;}
+            case self::LINK_FIELD_NOT_SET: {$msg = 'Can not set rating becase childs link field "'.$args[1].'" has no value' ;break;}
             default: $msg = parent::_getErrorMsg($args);
         }
         return $msg;

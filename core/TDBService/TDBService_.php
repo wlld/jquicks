@@ -7,7 +7,9 @@ class TDBService_ extends TService_{
     const INVALID_LINK_MODE = 205;
     const DB_NOT_FOUND = 206;
     const STRUCFILE_ERROR = 207;
-    
+    const RATING_FIELD_EXISTS = 208;
+    const FIELD_NOT_EXISTS = 209;
+
     private $_xml;
     private $db;
     
@@ -51,7 +53,7 @@ class TDBService_ extends TService_{
         }
         parent::_rename($name);
     }
-    public function setForignKeys($model,$field,$service,$parent,$op){
+    public function setForignKey($model,$field,$service,$parent,$op){
         if(!$this->project->isComponentExists('TDataBase')) return;
         $this->db = $this->project->getByName('TDataBase')->db;
         $tables = $this->_getDbTables();
@@ -136,6 +138,63 @@ class TDBService_ extends TService_{
                             '(?:ON\s+DELETE\s+(\w+))?/', $struc[0],$m,PREG_SET_ORDER);
         return $m;
     }
+    public function getRatingType($table,$field,$op){
+        if($op==='COUNT') return 'INT UNSIGNED NOT NULL';
+        $xml = $this->_getSelfStructure();
+        $r = $xml->xpath("table[@name='$table']/tfield[@name='$field']");
+        if($r) return (string)$r[0]['type'];        
+        else { // serching for rating fields
+            $c = $this->project->db['components'][$this->id];
+            if (!isset($c['r'][$table][$field])) self::error(self::FIELD_NOT_EXISTS,$field,$table);
+            return $c['r'][$table][$field];
+        }
+    }
+    public function addRatingField($model,$field,$type){
+        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
+        $c = &$this->project->db['components'][$this->id];
+        if(isset($c['r'][$model][$field])) self::error(self::RATING_FIELD_EXISTS,$field,$model);
+        $c['r'][$model][$field] = $type;
+        $this->db = $this->project->getByName('TDataBase')->db;
+        $table = strtolower($c['n'].'_'.$model);
+        $dbtables = $this->_getDbTables();
+        if(in_array($table, $dbtables)){
+            $sql = "ALTER TABLE $table ADD COLUMN `$field` $type";
+            if($this->db->exec($sql)===false) $this->_dbError();
+        }
+    }
+    public function deleteRatingField($model,$field){
+        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
+        $c = &$this->project->db['components'][$this->id];
+        if(isset($c['r'][$model][$field])){
+            unset($c['r'][$model][$field]);
+            $this->db = $this->project->getByName('TDataBase')->db;
+            $table = strtolower($c['n'].'_'.$model);
+            $dbtables = $this->_getDbTables();
+            if(in_array($table, $dbtables)){
+                $sql = "ALTER TABLE $table DROP COLUMN `$field`";
+                if($this->db->exec($sql)===false) $this->_dbError();
+            }
+        }
+    }
+    public function changeRatingField($model,$old_field_name,$new_field_name,$new_type){
+        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
+        $c = &$this->project->db['components'][$this->id];
+        if(!isset($c['r'][$model][$old_field_name])) self::error(self::FIELD_NOT_EXISTS,$old_field_name,$model);
+        $this->db = $this->project->getByName('TDataBase')->db;
+        $table = strtolower($c['n'].'_'.$model);
+        $dbtables = $this->_getDbTables();
+        if(in_array($table, $dbtables)){
+            $sql = "ALTER TABLE $table CHANGE COLUMN `$old_field_name` `$new_field_name` $new_type";
+            if($this->db->exec($sql)===false) $this->_dbError();
+        }
+        $type = $c['r'][$model][$old_field_name];
+        unset($c['r'][$model][$old_field_name]);
+        $c['r'][$model][$new_field_name]=$type;
+    }
+    public function updateAllRatings($ptable,$ctable,$lfield,$op,$rfield,$tfield){
+        $sql = "UPDATE $ptable AS p SET `$tfield`=(SELECT $op(c.`$rfield`) FROM $ctable AS c WHERE c.`$lfield` = p.idx GROUP BY c.`$lfield`)";
+        if($this->db->exec($sql)===false) $this->_dbError();
+    }
     protected function _getTables(){
         $xmlfile = TComponent::getPalettePath($this->class).'/service.xml';
         $t=array();
@@ -157,6 +216,8 @@ class TDBService_ extends TService_{
             case self::INVALID_LINK_MODE: {$msg = 'Invalid link mode: "'.$args[1].'"'; break;}
             case self::DB_NOT_FOUND: {$msg = 'You must have a TDataBase component to edit links'; break;}
             case self::STRUCFILE_ERROR: {$msg = 'File service.xml of "'.$args[1].'" has invalid structure.'; break;}
+            case self::RATING_FIELD_EXISTS: {$msg = 'Rating field "'.$args[1].'" in "'.$args[2].'" already exists'; break;}
+            case self::FIELD_NOT_EXISTS: {$msg = 'Field "'.$args[1].'" does not exist in "'.$args[2].'" model'; break;}
             default: $msg = parent::_getErrorMsg($args);
         }
         return $msg;
