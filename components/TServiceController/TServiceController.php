@@ -11,7 +11,7 @@ private static $_definition_struc = array (
       'owner' => false,
     ),
     'fields' =>array (
-      'p' => 'a:3:{s:7:"service";a:2:{i:0;i:3;i:1;b:1;}s:5:"model";a:2:{i:0;i:3;i:1;b:0;}s:4:"link";a:2:{i:0;i:4;i:1;b:0;}}',
+      'p' => 'a:5:{s:7:"service";a:2:{i:0;i:3;i:1;b:0;}s:7:"project";a:2:{i:0;i:3;i:1;b:0;}s:9:"component";a:2:{i:0;i:1;i:1;b:0;}s:5:"model";a:2:{i:0;i:3;i:1;b:0;}s:4:"link";a:2:{i:0;i:4;i:1;b:0;}}',
       'i' => 'a:0:{}',
       'u' => 'a:0:{}',
       'f' => 'a:9:{s:3:"idx";i:1;s:4:"name";i:3;s:4:"desc";i:3;s:4:"type";i:3;s:5:"fetch";i:1;s:6:"insert";i:1;s:6:"update";i:1;s:5:"model";i:3;s:4:"link";i:5;}',
@@ -102,6 +102,16 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     protected function _fetch_fields_model($args){
         $p = $args['params']; $f = $args['fields'];
+        if(isset($p['project'])){
+            if(!isset($p['component'])) self::error(self::ARGUMENT_REQUIRED,'component','fields/fetch'); 
+            $project = jq::getProject($p['project']);
+            if(!isset($project->db['components'][$p['component']])) self::error(self::COMPONENT_NOT_FOUND,$p['component']);
+            $cmp = $project->db['components'][$p['component']];
+            $p['service'] = $cmp['c'];
+        }
+        else{
+            if(!isset($p['service'])) self::error(self::ARGUMENT_REQUIRED,'service','fields/fetch'); 
+        }
         $xml = self::_getStructure($p['service']);
         $rows = array();
         $_xpath = isset($p['model'])?"model[@name='{$p['model']}']":"model";
@@ -124,6 +134,9 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                 if(!$f || in_array('model',$f)) $row['model'] = $md;
                 $rows[] = $row;
             }
+        }
+        if(isset($cmp['r'])){
+            
         }
         return array('rows'=>$rows,'count'=>count($rows));
     }

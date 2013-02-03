@@ -139,10 +139,13 @@ class TDBService_ extends TService_{
         return $m;
     }
     public function getRatingType($table,$field,$op){
-        if($op==='COUNT') return 'INT UNSIGNED NOT NULL';
+        if($op==='COUNT') return array('INT UNSIGNED NOT NULL',false);
         $xml = $this->_getSelfStructure();
         $r = $xml->xpath("table[@name='$table']/tfield[@name='$field']");
-        if($r) return (string)$r[0]['type'];        
+        if($r){
+            $link = (($op==='SUM') || ($field!='idx'))? false:$this->class.'.'.$table;
+            return array((string)$r[0]['type'],$link,$this->id);
+        } 
         else { // serching for rating fields
             $c = $this->project->db['components'][$this->id];
             if (!isset($c['r'][$table][$field])) self::error(self::FIELD_NOT_EXISTS,$field,$table);
@@ -158,7 +161,7 @@ class TDBService_ extends TService_{
         $table = strtolower($c['n'].'_'.$model);
         $dbtables = $this->_getDbTables();
         if(in_array($table, $dbtables)){
-            $sql = "ALTER TABLE $table ADD COLUMN `$field` $type";
+            $sql = "ALTER TABLE $table ADD COLUMN `$field` {$type[0]}";
             if($this->db->exec($sql)===false) $this->_dbError();
         }
     }
@@ -184,7 +187,7 @@ class TDBService_ extends TService_{
         $table = strtolower($c['n'].'_'.$model);
         $dbtables = $this->_getDbTables();
         if(in_array($table, $dbtables)){
-            $sql = "ALTER TABLE $table CHANGE COLUMN `$old_field_name` `$new_field_name` $new_type";
+            $sql = "ALTER TABLE $table CHANGE COLUMN `$old_field_name` `$new_field_name` {$new_type[0]}";
             if($this->db->exec($sql)===false) $this->_dbError();
         }
         $type = $c['r'][$model][$old_field_name];

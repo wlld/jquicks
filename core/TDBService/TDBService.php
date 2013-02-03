@@ -35,7 +35,6 @@ abstract class TDBService extends TService{
     private static $_types;
     private static $_links;
     private static $_db_tables;
-    static protected $_linked_tables; //Список присоединённых таблиц для текущей операции SELECT
     private $_linksdef; 
 
     public function __construct($struc=null){
@@ -213,7 +212,6 @@ abstract class TDBService extends TService{
         return $sql;
     } 
     protected function _fetchTableModel($args,$model,$awhere=array(),$params=array()){
-        self::$_linked_tables = array();
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
         $tbl = $this->table($model);
@@ -261,31 +259,46 @@ abstract class TDBService extends TService{
         if (!$fields) return 't.*';
         if(!in_array('idx',$fields)) $fields[] = 'idx';
         foreach($fields as &$f){
-            $a = explode('.',$f);
-            if(count($a)==2){
-                self::$_links[] = $a[0];
-                $f = $a[0].'.`'.$a[1].'` AS `'.$f.'`';
+            if(($p=strrpos($f,'.'))!=false){
+                self::$_links[] = $f1 = substr($f,0,$p);
+                $f = '`'.$f1.'`.`'.substr($f,$p+1).'` AS `'.$f.'`';
             }
             else $f = 't.`'.$f.'`';
         }
         self:$_links = array_unique(self::$_links);
         return join(', ',$fields);
     }
+/*
+SELECT `lastmsg.owner`.`name` AS `lastmsg.owner.name` FROM forum_topics
+LEFT JOIN srv_discuss_messages AS `lastmsg` ON `lastmsg`=`lastmsg`.idx
+LEFT JOIN taccountservice_users AS `lastmsg.owner` ON `lastmsg`.`owner`=`lastmsg.owner`.idx
+*/
     protected function _getSQLLinks($model){
-        $r = '';
+        $joins = array();
         if(self::$_links){
+            $cmps = $this->project->db['components'];
             foreach(self::$_links as $link){
-                if(!isset($this->_linksdef[0][$model][$link])) self::error(self::UNDEFINED_LINK,$link);
-                $l = $this->_linksdef[0][$model][$link];
-                $cmps = $this->project->db['components'];
-                if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$link);
-                $sname = $cmps[$l[0]]['n'];
-                $table = strtolower($sname.'_'.$l[2]); 
-                self::$_linked_tables[$sname][] = $l[2];
-                $r .= " LEFT JOIN $table AS $link ON `$link`=$link.idx";
+                $alink = explode('.',$link);
+                $cmp = $cmps[$this->id];
+                $context = '';$i=0;
+                while(1){
+                    $clink = $link[$i];
+                    $alias = $context? "$context.$clink":$clink;
+                    if(isset($loins[$alias])) continue;
+                    if(!isset($cmp['links'][$model][$clink])) self::error(self::UNDEFINED_LINK,$clink);
+                    $l = $cmp['links'][$model][$clink];
+                    if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$clink);
+                    $sname = $cmps[$l[0]]['n'];
+                    $table = strtolower($sname.'_'.$l[2]); 
+                    $lfield = $context? "`$context`.`$clink`":"`$clink`";
+                    $joins[$alias] = "LEFT JOIN $table AS `$alias` ON $lfield=`$alias`.idx";
+                    if(++$i>=count($alink)) break;
+                    $context = $alias;
+                    $cmp = $cmps[$l[0]];
+                }
             }
         }
-        return $r;
+        return join($joins,' ');
     }
     protected function _getSQLLimit($first,$limit){
        return $limit?(' LIMIT '.$first.','.$limit):'';

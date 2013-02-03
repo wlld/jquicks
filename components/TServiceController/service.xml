@@ -19,7 +19,9 @@
         <field name="model" desc="Имя модели, к которой принадлежит поле" type="CHAR" fetch="1"/>
         <field name="link" desc="Определение ссылки {'&lt;имя класса&gt;','&lt;имя моделя&gt;'}" type="OBJECT" fetch="1"/>
 
-        <param name="service" desc="" type="CHAR" required="1" />
+        <param name="service" desc="" type="CHAR" required="0" />
+        <param name="project" desc="" type="CHAR" required="0" />
+        <param name="component" desc="" type="INTEGER" required="0" />
         <param name="model" desc="" type="CHAR" required="0" />
         <param name="link" desc="Если true, по отбираются только ссылочные поля" type="BOOLEAN" required="0" />
     </model>
