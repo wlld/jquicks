@@ -198,26 +198,27 @@ SELECT `lastmsg.owner`.`name` AS `lastmsg.owner.name` FROM forum_topics
 LEFT JOIN srv_discuss_messages AS `lastmsg` ON `lastmsg`=`lastmsg`.idx
 LEFT JOIN taccountservice_users AS `lastmsg.owner` ON `lastmsg`.`owner`=`lastmsg.owner`.idx
 */
-    protected function _getSQLLinks($model){
+    protected function _getSQLLinks($head_model){
         $joins = array();
         if(self::$_links){
             $cmps = $this->project->db['components'];
             foreach(self::$_links as $link){
                 $alink = explode('.',$link);
                 $cmp = $cmps[$this->id];
-                $context = '';$i=0;
+                $context = '';$i=0; $model = $head_model;
                 while(1){
                     $clink = $alink[$i];
                     $alias = $context? "$context.$clink":$clink;
-                    if(isset($joins[$alias])) continue;
                     if(isset($cmp['links'][0][$model][$clink])) $l = $cmp['links'][0][$model][$clink];
                     elseif (isset($cmp['r'][$model][$clink])) $l = $cmp['r'][$model][$clink][1];
                     else self::error(self::UNDEFINED_LINK,$clink);
                     if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$clink);
-                    $sname = $cmps[$l[0]]['n'];
-                    $table = strtolower($sname.'_'.$l[2]); 
-                    $lfield = $context? "`$context`.`$clink`":"t.`$clink`";
-                    $joins[$alias] = "LEFT JOIN $table AS `$alias` ON $lfield=`$alias`.idx";
+                    if(!isset($joins[$alias])){;
+                        $sname = $cmps[$l[0]]['n'];
+                        $table = strtolower($sname.'_'.$l[2]); 
+                        $lfield = $context? "`$context`.`$clink`":"t.`$clink`";
+                        $joins[$alias] = "LEFT JOIN $table AS `$alias` ON $lfield=`$alias`.idx";
+                    }
                     if(++$i>=count($alink)) break;
                     $context = $alias;
                     $cmp = $cmps[$l[0]];
