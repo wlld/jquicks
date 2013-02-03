@@ -9,10 +9,17 @@ class TDBService_ extends TService_{
     const STRUCFILE_ERROR = 207;
     const RATING_FIELD_EXISTS = 208;
     const FIELD_NOT_EXISTS = 209;
+    const TABLE_EXISTS = 210;
 
     private $_xml;
     private $db;
-    
+    public function insertIntoProject($parent, $section, $order, $page, $name = null) {
+        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
+        parent::insertIntoProject($parent, $section, $order, $page, $name);
+        $this->db = $this->project->getByName('TDataBase')->db;
+        $this->name = $this->_getName();
+        $this->createTables();
+    }
     protected function _getSelfStructure(){
         if (!$this->_xml){
          $xmlfile = TComponent::getPalettePath($this->class).'/service.xml';
@@ -27,53 +34,73 @@ class TDBService_ extends TService_{
         if(!$r) $this->_dbError();
         return $r->fetchAll(PDO::FETCH_COLUMN,0);
     }
+    protected function _getTables(){
+        $xml = $this->_getSelfStructure();
+        foreach($xml->table as $tag) $t[]=(string)$tag['name'];
+        return $t;
+    }
+    protected function createTables(){
+        $tables = $this->_getDbTables();
+        foreach($this->_getTables() as $table){
+            $tname = $this->table($table);
+            if(!in_array($tname, $tables)) {
+                $sql = $this->_getTableCreate($table,$tname);
+                if ($this->db->exec($sql)===false) $this->_dbError();
+            }
+            else  $this->_catchTable($table,$tname);
+        }
+    }
+    protected function table($n){return strtolower($this->name).'_'.$n; }
+    protected function _getTableCreate($name,$tname){
+        $xml = $this->_getSelfStructure();
+        if(!($tables = $xml->xpath("table[@name='$name']"))) self::error(self::TABLEDEF_NOT_FOUND,$name);
+        $table = $tables[0];
+        $tdef = array();
+        foreach($table->tfield as $f){
+            $fname = (string)$f['name'];
+            $def = (string)$f? 'DEFAULT '.(string)$f:'';
+            $tdef[] = "`$fname` {$f['type']} $def".(isset($f['auto'])?' AUTO_INCREMENT':'');
+        }
+        $tdef[] = 'PRIMARY KEY (idx)';
+        foreach($table->index as $index) {
+            $unique = isset($index['unique'])&&(boolean)$index['unique'];
+            $tdef[] = ($unique?'UNIQUE INDEX (':'INDEX (').(string)$index.')';
+        }    
+        $sql = 'CREATE TABLE IF NOT EXISTS '.$tname." (\n".join(",\n",$tdef).')';
+        $ttype = isset($table['type'])?(string)$table['type']:'MyISAM';
+        $sql .= ' ENGINE='.$ttype;
+        return $sql;
+    } 
     protected function _rename($name) {
         $oldname = strtolower($this->_getName());
         $newname = strtolower($name);
-        if($this->project->isComponentExists('TDataBase')){
-            $this->db = $this->project->getByName('TDataBase')->db;
-            $r = $this->db->query('SHOW TABLES');
-            if(!$r) $this->_dbError();
-            $tbls = $r->fetchAll(PDO::FETCH_COLUMN,0);
-            $tt = array();
-            foreach($this->_getTables() as $table){
-                $told = $oldname.'_'.$table;
-                $tnew = $newname.'_'.$table;
-                if(in_array($tnew, $tbls)){
-                    $cmp = &$this->project->db['components'][$this->id];
-                    $this->_catchTable($table,$tnew,$cmp);
-                    continue;
-                } 
-                if(in_array($told, $tbls)) $tt[] = $told.' TO '.$tnew;
-            }
-            if($tt){
-                $sql = 'RENAME TABLE '.join(',', $tt);
-                if ($this->db->exec($sql)===false) $this->_dbError();
-            }
+        $this->db = $this->project->getByName('TDataBase')->db;
+        $tbls = $this->_getDbTables();
+        $tt = array();
+        foreach($this->_getTables() as $table){
+            $told = $oldname.'_'.$table;
+            $tnew = $newname.'_'.$table;
+            if(in_array($tnew, $tbls)) self::error(self::TABLE_EXISTS,$tnew);
+            $tt[] = $told.' TO '.$tnew;
+        }
+        if($tt){
+            $sql = 'RENAME TABLE '.join(',', $tt);
+            if ($this->db->exec($sql)===false) $this->_dbError();
         }
         parent::_rename($name);
     }
     public function setForignKey($model,$field,$service,$parent,$op){
-        if(!$this->project->isComponentExists('TDataBase')) return;
         $this->db = $this->project->getByName('TDataBase')->db;
-        $tables = $this->_getDbTables();
         $srvname = $this->_getName();
         $ptable = strtolower($service.'_'.$parent);
         $ctable = strtolower($srvname.'_'.$model);
-        if(!in_array($ctable, $tables)) return;
         $keys = $this->_getForignKeys($ctable);
         $n = self::_isKeyExists($field, $keys);
         if($n!==false){ //есть ссылка
             if(self::_isThatLink($keys[$n],$ptable,$op)) return;
             $this->_dropTableKey($ctable,$keys[$n][1]);
         }
-        if($op!=='NONE'){
-            if(!in_array($ptable, $tables)){
-                $pcmp = $this->project->getByName($service);
-                $pcmp->createTable($parent);
-            }
-            $this->_addTableKey($ctable,$field,$ptable,$op);
-        }
+        if($op!=='NONE') $this->_addTableKey($ctable,$field,$ptable,$op);
     }
     private static function _isKeyExists($field,$keys){
         if (!$keys) return false;
@@ -93,7 +120,8 @@ class TDBService_ extends TService_{
         $sql = "ALTER TABLE $table ADD CONSTRAINT FOREIGN KEY ($field) REFERENCES $to_table(idx) ON DELETE $mode";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
-    private function _catchTable($table,$db_table_name,$cmp){
+    private function _catchTable($table,$db_table_name){
+        $cmp = &$this->project->db['components'][$this->id];
         $this->_restoreForignKeys($table,$db_table_name,$cmp);
     }
     private function _restoreForignKeys($table,$db_table_name,$cmp){
@@ -153,7 +181,6 @@ class TDBService_ extends TService_{
         }
     }
     public function addRatingField($model,$field,$type){
-        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
         $c = &$this->project->db['components'][$this->id];
         if(isset($c['r'][$model][$field])) self::error(self::RATING_FIELD_EXISTS,$field,$model);
         $c['r'][$model][$field] = $type;
@@ -166,21 +193,16 @@ class TDBService_ extends TService_{
         }
     }
     public function deleteRatingField($model,$field){
-        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
         $c = &$this->project->db['components'][$this->id];
         if(isset($c['r'][$model][$field])){
             unset($c['r'][$model][$field]);
             $this->db = $this->project->getByName('TDataBase')->db;
             $table = strtolower($c['n'].'_'.$model);
-            $dbtables = $this->_getDbTables();
-            if(in_array($table, $dbtables)){
-                $sql = "ALTER TABLE $table DROP COLUMN `$field`";
-                if($this->db->exec($sql)===false) $this->_dbError();
-            }
+            $sql = "ALTER TABLE $table DROP COLUMN `$field`";
+            if($this->db->exec($sql)===false) $this->_dbError();
         }
     }
     public function changeRatingField($model,$old_field_name,$new_field_name,$new_type){
-        if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
         $c = &$this->project->db['components'][$this->id];
         if(!isset($c['r'][$model][$old_field_name])) self::error(self::FIELD_NOT_EXISTS,$old_field_name,$model);
         $this->db = $this->project->getByName('TDataBase')->db;
@@ -198,13 +220,6 @@ class TDBService_ extends TService_{
         $sql = "UPDATE $ptable AS p SET `$tfield`=(SELECT $op(c.`$rfield`) FROM $ctable AS c WHERE c.`$lfield` = p.idx GROUP BY c.`$lfield`)";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
-    protected function _getTables(){
-        $xmlfile = TComponent::getPalettePath($this->class).'/service.xml';
-        $t=array();
-        if (!file_exists($xmlfile)||(($xml = simplexml_load_file($xmlfile))===false)) return $t;
-        foreach($xml->table as $tag) $t[]=(string)$tag['name'];
-        return $t;
-    }
     protected  function _dbError(){
         $e = $this->db->errorInfo();
         self::error(self::DBERROR,$e[2]);
@@ -217,10 +232,11 @@ class TDBService_ extends TService_{
             case self::INVALID_LINK_TYPE: {$msg = 'Invalid type definition of link "'.$args[1] ;break;}
             case self::STRUCFILE_NOT_FOUND: {$msg = 'File service.xml in "'.$args[1].'"does not exist or it have bad xml format'; break;}
             case self::INVALID_LINK_MODE: {$msg = 'Invalid link mode: "'.$args[1].'"'; break;}
-            case self::DB_NOT_FOUND: {$msg = 'You must have a TDataBase component to edit links'; break;}
+            case self::DB_NOT_FOUND: {$msg = 'You must insert and configure TDataBase component first'; break;}
             case self::STRUCFILE_ERROR: {$msg = 'File service.xml of "'.$args[1].'" has invalid structure.'; break;}
             case self::RATING_FIELD_EXISTS: {$msg = 'Rating field "'.$args[1].'" in "'.$args[2].'" already exists'; break;}
             case self::FIELD_NOT_EXISTS: {$msg = 'Field "'.$args[1].'" does not exist in "'.$args[2].'" model'; break;}
+            case self::TABLE_EXISTS: {$msg = 'Table "'.$args[1].'" already exists in the database'; break;}
             default: $msg = parent::_getErrorMsg($args);
         }
         return $msg;

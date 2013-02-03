@@ -124,93 +124,17 @@ abstract class TDBService extends TService{
         array_walk_recursive($rows, array(__CLASS__,'_castValue'));
     }
     protected function _exec($sql,$params=array()){
-        $cmd = $this->db->prepare($sql);
-        if(!$cmd->execute($params)) {
-            $code = $cmd->errorCode();
-            if($code === '42S02'){ // Tables not exists
-                $this->createAllTables();
-                if(!$cmd->execute($params)) $this->_dbError($cmd);
-            }
-            else $this->_dbError($cmd);
-        };
+        if($params){
+            $cmd = $this->db->prepare($sql);
+            if(!$cmd->execute($params)) $this->_dbError($cmd);
+        }
+        else{
+            $cmd = $this->db->query($sql);
+            if(!$cmd) $this->_dbError($cmd);
+        }
         return $cmd;
     }
-    public function createTable($name){
-        $sql = $this->_getTableCreate($name, $tname, $linked_tables);
-        $tables = &$this->dbTables();
-        foreach($linked_tables as $link){
-            $ptable = strtolower($link[0].'_'.$link[1]);
-            if(!in_array($ptable, $tables)){
-                $srv = $this->project->getByName($link[0]);
-                $srv->createTable($link[1]);
-                $tables[] = $ptable;
-            }
-        }
-        if ($this->db->exec($sql)===false) $this->_dbError();
-        $tables[] = $tname;
-    }
-    public function createAllTables(){
-        $tables = &$this->dbTables();
-        foreach($this->_getTables() as $table){
-            if(!in_array($this->table($table), $tables)) $this->createTable($table);
-        }
-    }
     protected function table($n){return strtolower($this->name).'_'.$n; }
-    protected function _getTables(){
-        $xmlfile = TComponent::getPalettePath(get_class($this)).'/service.xml';
-        $t=array();
-        if (!file_exists($xmlfile)| (($this->_xml = simplexml_load_file($xmlfile))===false)) return $t;
-        foreach($this->_xml->table as $tag) $t[]=(string)$tag['name'];
-        return $t;
-    }
-    protected function &dbTables(){
-        if(!isset(self::$_db_tables)){
-            $r = $this->db->query('SHOW TABLES');
-            if(!$r) $this->_dbError();
-            self::$_db_tables = $r->fetchAll(PDO::FETCH_COLUMN,0);
-        }
-        return self::$_db_tables;
-    }
-    protected function _getSelfStructure(){
-        if (!isset($this->_xml)){
-         $class = get_class($this);   
-         $xmlfile = TComponent::getPalettePath($class).'/service.xml';
-         if (!file_exists($xmlfile)) self::error(self::STRUCFILE_NOT_FOUND,$class);
-         $this->_xml = simplexml_load_file($xmlfile);
-         if($this->_xml===false) self::error(self::STRUCFILE_ERROR);
-        } 
-        return $this->_xml;
-    }
-    protected function _getTableCreate($name,&$tname, &$linked_tables){
-        $xml = $this->_getSelfStructure();
-        if(!($tables = $xml->xpath("table[@name='$name']"))) self::error(self::TABLEDEF_NOT_FOUND,$name);
-        $table = $tables[0];
-        $tdef = $linked_tables = array();
-        foreach($table->tfield as $f){
-            $fname = (string)$f['name'];
-            $def = (string)$f? 'DEFAULT '.(string)$f:'';
-            $tdef[] = "`$fname` {$f['type']} $def".(isset($f['auto'])?' AUTO_INCREMENT':'');
-        }
-        $tdef[] = 'PRIMARY KEY (idx)';
-        foreach($table->index as $index) {
-            $unique = isset($index['unique'])&&(boolean)$index['unique'];
-            $tdef[] = ($unique?'UNIQUE INDEX (':'INDEX (').(string)$index.')';
-        }    
-        //Добавляем внешние ключи
-        if(isset($this->_linksdef[0][$name])){
-            foreach($this->_linksdef[0][$name] as $field=>$link){
-                if($link[2]==='NONE') continue;
-                $ptable = strtolower($link[0].'_'.$link[1]);
-                $linked_tables[] = array($link[0],$link[1]);
-                $tdef[] = "FOREIGN KEY (`$field`) REFERENCES $ptable(idx) ON DELETE {$link[2]}";
-            }
-        }
-        $tname = $this->table($name);
-        $sql = 'CREATE TABLE IF NOT EXISTS '.$tname." (\n".join(",\n",$tdef).')';
-        $ttype = isset($table['type'])?(string)$table['type']:'MyISAM';
-        $sql .= ' ENGINE='.$ttype;
-        return $sql;
-    } 
     protected function _fetchTableModel($args,$model,$awhere=array(),$params=array()){
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
