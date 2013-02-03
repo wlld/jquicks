@@ -141,7 +141,8 @@ abstract class TDBService extends TService{
         $tbl = $this->table($model);
         $where = $awhere?  'WHERE ('.join(') AND (', $awhere).')':'';
         $links = $this->_getSQLLinks($model);
-        $cmd = $this->_exec("SELECT SQL_CALC_FOUND_ROWS $fields FROM $tbl AS t $links $where $limit",$params);
+        $sql = "SELECT SQL_CALC_FOUND_ROWS $fields FROM $tbl AS t $links $where $limit";
+        $cmd = $this->_exec($sql,$params);
         $crows = $this->_exec('SELECT FOUND_ROWS()');
         $count = $crows->fetchColumn();
         $rows = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -206,19 +207,21 @@ LEFT JOIN taccountservice_users AS `lastmsg.owner` ON `lastmsg`.`owner`=`lastmsg
                 $cmp = $cmps[$this->id];
                 $context = '';$i=0;
                 while(1){
-                    $clink = $link[$i];
+                    $clink = $alink[$i];
                     $alias = $context? "$context.$clink":$clink;
-                    if(isset($loins[$alias])) continue;
-                    if(!isset($cmp['links'][$model][$clink])) self::error(self::UNDEFINED_LINK,$clink);
-                    $l = $cmp['links'][$model][$clink];
+                    if(isset($joins[$alias])) continue;
+                    if(isset($cmp['links'][0][$model][$clink])) $l = $cmp['links'][0][$model][$clink];
+                    elseif (isset($cmp['r'][$model][$clink])) $l = $cmp['r'][$model][$clink][1];
+                    else self::error(self::UNDEFINED_LINK,$clink);
                     if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$clink);
                     $sname = $cmps[$l[0]]['n'];
                     $table = strtolower($sname.'_'.$l[2]); 
-                    $lfield = $context? "`$context`.`$clink`":"`$clink`";
+                    $lfield = $context? "`$context`.`$clink`":"t.`$clink`";
                     $joins[$alias] = "LEFT JOIN $table AS `$alias` ON $lfield=`$alias`.idx";
                     if(++$i>=count($alink)) break;
                     $context = $alias;
                     $cmp = $cmps[$l[0]];
+                    $model = $l[2];
                 }
             }
         }

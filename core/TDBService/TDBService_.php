@@ -171,10 +171,10 @@ class TDBService_ extends TService_{
         $xml = $this->_getSelfStructure();
         $r = $xml->xpath("table[@name='$table']/tfield[@name='$field']");
         if($r){
-            $link = (($op==='SUM') || ($field!='idx'))? false:$this->class.'.'.$table;
-            return array((string)$r[0]['type'],$link,$this->id);
+            $link = (($op==='SUM') || ($field!='idx'))? false:array($this->id,$this->class,$table,'NONE');
+            return array((string)$r[0]['type'],$link);
         } 
-        else { // serching for rating fields
+        else { // searching for rating fields
             $c = $this->project->db['components'][$this->id];
             if (!isset($c['r'][$table][$field])) self::error(self::FIELD_NOT_EXISTS,$field,$table);
             return $c['r'][$table][$field];
@@ -186,11 +186,8 @@ class TDBService_ extends TService_{
         $c['r'][$model][$field] = $type;
         $this->db = $this->project->getByName('TDataBase')->db;
         $table = strtolower($c['n'].'_'.$model);
-        $dbtables = $this->_getDbTables();
-        if(in_array($table, $dbtables)){
-            $sql = "ALTER TABLE $table ADD COLUMN `$field` {$type[0]}";
-            if($this->db->exec($sql)===false) $this->_dbError();
-        }
+        $sql = "ALTER TABLE $table ADD COLUMN `$field` {$type[0]}";
+        if($this->db->exec($sql)===false) $this->_dbError();
     }
     public function deleteRatingField($model,$field){
         $c = &$this->project->db['components'][$this->id];
