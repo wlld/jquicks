@@ -1,0 +1,4 @@
+<components>
+    <prp name='library' type='string' />
+    <prp name='autoload' type='string' />
+</components>

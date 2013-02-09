@@ -97,6 +97,6 @@ abstract class TComponent {
     }
     public static function isCoreClass($class){
         return in_array($class,array('TComponent','TVidget','TModel','TCacheModel','TActionServer','TContainer','TPage',
-        'TService','TDBService','TDataBase','TAccountService','TLoginDialog','TLibrary','TCryptLibrary'));
+        'TService','TDBService','TDataBase','TAccountService','TLoginDialog','TLibrary','TRegistrationForm'));
     }
 }

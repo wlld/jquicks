@@ -349,11 +349,3 @@ $l['index']++;?>
 </fieldset>
 </form>
 <?php }//linkspeededitor_template?>
-<?php function palette_page_4_template($cmp){?>
-<? $__var0 = array('index'=>-1,'from'=>$cmp->components);
-foreach($__var0['from'] as $cmp) {
-$__var0['index']++;?>
-<? $path=isCoreClass($cmp)?'/core/':'/components/'; ?>
-   <img alt="<? echo($cmp)?>" title="<? echo($cmp)?>" src="<? echo($path.$cmp)?>/icon.png"?>
-<?}?>
-<?php }//palette_page_4_template?>

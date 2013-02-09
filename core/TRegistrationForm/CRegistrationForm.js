@@ -7,7 +7,8 @@ jq.newClass('CRegistrationForm','CVidget',{
        this.id.style.display='none';  
     },
     show:function(){
-       if (this.state != 0){
+       this.login = this.pass = this.email = '';
+       if (this.state != 0 || !this.id.getElementsByTagName('FORM')[0]){
            this.state=0;
            this.redraw();
        }
