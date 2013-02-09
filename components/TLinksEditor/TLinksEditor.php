@@ -6,8 +6,8 @@ class TLinksEditor extends TVidget{
     public $display = false;
 
     protected function isClientInstance(){return true;}
-    public function __construct($struc = null) {
-        parent::__construct($struc);
+    public function __construct($project,$struc = null) {
+        parent::__construct($project,$struc);
         $this->view_model = $this->name.'.model';
     }
 }

@@ -45,7 +45,7 @@ class TVidget_ extends TComponent_ {
     private function _isUpdatible(){
         $prp = $this->project->db['components'][$this->id]['p'];
         if (isset($prp['updatible'])) return $prp['updatible'][1];
-        $cmp = new $this->class();
+        $cmp = new $this->class($this->project);
         return $cmp->updatible;
     }
     protected function _rename($name){

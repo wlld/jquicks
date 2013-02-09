@@ -8,8 +8,8 @@ class TPage extends TContainer {
     private $_comps;
     private $_classes = array();
 
-    public function __construct($struc=null){
-        parent::__construct($struc);
+    public function __construct($project,$struc=null){
+        parent::__construct($project,$struc);
         if ($struc) $this->_comps = $struc['u'];
     }
     protected function isClientInstance(){return false;}
@@ -65,6 +65,7 @@ class TPage extends TContainer {
 //        echo '  <script type="text/javascript" src="',$this->_noCacheLink('classes.js'),'"></script>',"\n";
         $this->_drawClientClasses();
         echo '  <title>',$this->title,'</title>',"\n";
+        $this->project->event('ondrawheader');
         echo "</head>\n<body id='$this->name'>\n";
     }
     private function _drawClientClasses(){

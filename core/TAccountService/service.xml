@@ -41,22 +41,33 @@
   <command name="authenticatePhase1" desc="Запуск фазы 1 процесса аутентификации пользователя">
       <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
   </command>
-  <command name="authenticatePhase2" desc="Запуск фазы 2 процесса аутентификации пользователя">
+  <command name="getPublicKey" desc="Возвращает публичный ключ">
+  </command>
+  <command name="registration" desc="Регистрация нового пользователя">
       <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
-      <param name="pass" desc="MD5(MD5(пароль)+публичный ключ)" type="CHAR" required="1" />
+      <param name="pass" desc="Шифрованный пароль пользователя" type="CHAR" required="1" />
+      <param name="name" desc="Отображаемое имя пользователя" type="CHAR" required="0" />
+      <param name="email" desc="Закрытый адрес электронной почты" type="CHAR" required="0" />
+  </command>
+  <command name="authenticationPhase1" desc="Запуск фазы 1 процесса аутентификации пользователя">
+      <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
+  </command>
+  <command name="authenticationPhase2" desc="Запуск фазы 2 процесса аутентификации пользователя">
+      <param name="login" desc="Логин пользователя" type="CHAR" required="1" />
+      <param name="pass" desc="RSA(пароль+ID)" type="CHAR" required="1" />
       <param name="rm" desc="Признак необходимости запоминания сесии" type="INTEGER">0</param>
   </command>
   <command name="logout" desc="Окончание текущей сесии" />
   <table name="users" type="InnoDB">
       <tfield name="idx" type="INT UNSIGNED" auto="1" desc=""/>
-      <tfield name="login" type="CHAR(20)" desc=""/>
-      <tfield name="password" type="VARCHAR(32)" desc=""/>
-      <tfield name="name" type="VARCHAR(50)" desc=""/>
-      <tfield name="regdate" type="DATETIME" desc=""/>
-      <tfield name="groups" type="VARCHAR(255)" desc="">2</tfield>
-      <tfield name="email" type="VARCHAR(50)" desc=""/>
-      <tfield name="active" type="TINYINT" desc=""/>
-      <tfield name="pub_key" type="VARCHAR(32)" desc=""/>
+      <tfield name="login" type="CHAR(20) NOT NULL" desc=""/>
+      <tfield name="password" type="VARCHAR(40) NOT NULL" desc=""/>
+      <tfield name="name" type="VARCHAR(50) NOT NULL" desc=""/>
+      <tfield name="regdate" type="DATETIME NOT NULL" desc=""/>
+      <tfield name="groups" type="VARCHAR(255) NOT NULL" desc="">2</tfield>
+      <tfield name="email" type="VARCHAR(50) NOT NULL" desc=""/>
+      <tfield name="active" type="TINYINT NOT NULL" desc=""/>
+      <tfield name="pub_key" type="VARCHAR(32) NOT NULL" desc=""/>
       <index unique="1">login</index>
   </table>
   <table name="groups" type="InnoDB">

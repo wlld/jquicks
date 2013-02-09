@@ -37,8 +37,8 @@ abstract class TDBService extends TService{
     private static $_db_tables;
     private $_linksdef; 
 
-    public function __construct($struc=null){
-        parent::__construct($struc);
+    public function __construct($project,$struc=null){
+        parent::__construct($project,$struc);
         if($struc) $this->_linksdef = isset($struc['links'])?$struc['links']:array(array(),array());
     }
     function __get($name) {

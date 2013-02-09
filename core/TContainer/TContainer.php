@@ -13,8 +13,8 @@ class TContainer extends TVidget {
                 else echo 'section ',$n;
         }
     }
-    public function __construct($struc=null){
-        parent::__construct($struc);
+    public function __construct($project,$struc=null){
+        parent::__construct($project,$struc);
         if($struc) $this->_content = $struc['s'];
     }
     protected function getUsedComponents(){

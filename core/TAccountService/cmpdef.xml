@@ -3,4 +3,5 @@
     <prp name='check_ip' type='boolean'>0</prp>
     <prp name='ses_l_time' type='integer'>30</prp>
     <prp name='security' type='list["on","off","training"]'>off</prp>
+    <prp name='RSA_key_length' type='list["256","512","1024"]'>256</prp>
 </component>

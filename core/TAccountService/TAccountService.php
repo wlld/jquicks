@@ -27,7 +27,10 @@ private static $_definition_struc = array (
   ),
   'commands' =>array (
     'authenticatePhase1' => 'a:1:{s:5:"login";a:2:{i:0;i:3;i:1;b:1;}}',
-    'authenticatePhase2' => 'a:3:{s:5:"login";a:2:{i:0;i:3;i:1;b:1;}s:4:"pass";a:2:{i:0;i:3;i:1;b:1;}s:2:"rm";a:2:{i:0;i:1;i:1;b:0;}}',
+    'getPublicKey' => 'a:0:{}',
+    'registration' => 'a:4:{s:5:"login";a:2:{i:0;i:3;i:1;b:1;}s:4:"pass";a:2:{i:0;i:3;i:1;b:1;}s:4:"name";a:2:{i:0;i:3;i:1;b:0;}s:5:"email";a:2:{i:0;i:3;i:1;b:0;}}',
+    'authenticationPhase1' => 'a:1:{s:5:"login";a:2:{i:0;i:3;i:1;b:1;}}',
+    'authenticationPhase2' => 'a:3:{s:5:"login";a:2:{i:0;i:3;i:1;b:1;}s:4:"pass";a:2:{i:0;i:3;i:1;b:1;}s:2:"rm";a:2:{i:0;i:1;i:1;b:0;}}',
     'logout' => 'a:0:{}',
   ),
   'links' =>array (
@@ -39,8 +42,18 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     const ATTH_PHASE = 302;
     const INVALID_PASSWORD = 303;
     const ACCESS_DENIED = 304;
+    const INVALID_PASSWORD_FORMAT = 305;
+    const LOGIN_EXISTS = 306;
+    const EMAIL_REQUIRED = 307;
+    const INVALID_EMAIL_FORMAT = 308;
+    const INVALID_LOGIN_FORMAT = 309;
+    const DECRYPTION_ERROR = 310;
     
+    const pass_regexp = '/^[a-zA-z0-9~!@#$%^&*()_+=[\]{}:?><-]{3,10}$/';
+    const email_regexp = '/^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/';
+    const login_regexp = '/^[a-zA-z0-9_]{1,20}$/';
     protected $_user_rights = null;
+    public $RSA_key_size = 256;
     function cast_value(&$val,$key){
         global $f;
         if(isset($f[$key])) if($f[$key][0]===1) $val = (int)$val;
@@ -122,33 +135,53 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $rows = $r->fetchAll(PDO::FETCH_ASSOC);
         return array('rows'=>$rows,'count'=>count($rows));
     }
-    protected function authenticatePhase2($args){
+    protected function authenticationPhase1($args){ //command
+        $id = substr(uniqid(''),0,6);
         $table = $this->table('users');
-        $sql = "SELECT idx,groups,name,password,pub_key FROM $table WHERE login=? AND active=1";
+        $sql = "UPDATE $table SET pub_key='$id' WHERE login=?";
         $cmd = $this->_exec($sql,array($args['login']));
+        if($cmd->rowCount() === 0) self::error(self::LOGIN_UNKNOWN,$args['login']);
+        $r = $this->_getRSAKeys();
+        return array('id'=>$id,'key'=>$r['public']);
+    }
+    protected function authenticationPhase2($args){ //command
+        list($pass,$id) = $this->getSHAPassword($args['pass']);
+        $rm = isset($args['rm'])?$args['rm']:0;
+        $table = $this->table('users');
+        $this->db->beginTransaction();
+        $sql = "SELECT idx,groups,name,password,pub_key FROM $table WHERE login=? AND active=1 FOR UPDATE";
+        $cmd = $this->_exec($sql,array($args['login']));
+        if($cmd->rowCount()!==0){
+            $row = $cmd->fetch(PDO::FETCH_ASSOC);
+            $sql = "UPDATE $table SET pub_key='' WHERE login=?";
+            $this->_exec($sql, array($row['idx']));
+        }
+        $this->db->commit();
         if($cmd->rowCount()===0) self::error(self::LOGIN_UNKNOWN,$args['login']);
-        $row = $cmd->fetch(PDO::FETCH_ASSOC);
-        if(!$row['pub_key']) self::error(self::ATTH_PHASE);
-        $db_pass = md5($row['password'].$row['pub_key']);
-        if($db_pass !== $args['pass']) self::error(self::INVALID_PASSWORD);
-        // Session initialization
+        if(!$row['pub_key'] || $row['pub_key'] != $id) self::error(self::ATTH_PHASE);
+        if($row['password']!==$pass) self::error(self::INVALID_PASSWORD);
+        $this->startSession($row['idx'], $rm);
+        unset($row['password'],$row['pub_key']);
+        $this->setUpdateModel('users');
+        return $row;
+    }
+    private function startSession($user_id,$rm=0){
         $sid = md5(uniqid(rand(0,100000)));
         $table = $this->table('sessions');
-        $cmd = "INSERT INTO $table (idx,user_idx,ip,uagent,expire,last_active)
-          VALUES ('$sid', :user_idx, :ip, :uagent, :expire, :last_active)";
+        $cmd = "INSERT INTO $table (idx,user_idx,ip,uagent,expire,last_active) VALUES ('$sid', :user_idx, :ip, :uagent, :expire, :last_active)";
         $this->_exec($cmd,array(
-            ':user_idx'=>$row['idx'],
+            ':user_idx'=>$user_id,
             ':ip'=>$_SERVER['REMOTE_ADDR'],
             ':uagent'=>$_SERVER['HTTP_USER_AGENT'],
             ':expire'=>date(self::SQL_DATE_FORMAT,time()+$this->ses_l_time*24*3600),
             ':last_active'=>date(self::SQL_DATE_FORMAT),
         ));
-        $this->setCookies($sid,$args['rm']);
-        unset($row['password'],$row['pub_key']);
-        $this->setUpdateModel('users');
-        return $row;
+        $expiry = ($rm == 1)? time()+$this->ses_l_time*24*3600:0;
+        $cookie_name = 'sid::'.$this->project->name;
+        setcookie ($cookie_name, $sid,$expiry,'/');
+        $_COOKIE[$cookie_name]=$sid;
     }
-    protected function logout(){
+    protected function logout(){ //command
         $cookie_name = 'sid::'.$this->project->name;
         if(isset($_COOKIE[$cookie_name])){
             $sid = substr($_COOKIE[$cookie_name],0,32);
@@ -159,40 +192,70 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         }
         return array();
     }
-    protected function authenticatePhase1($args){
-        $id = uniqid('');
+    protected function getPublicKey($args){ // command
+        $r = $this->_getRSAKeys();
+        return array('key'=>$r['public']);
+    }
+    protected function registration($args){ // command
+        self::checkLogin($args['login']);
+        list($pass,$id) = $this->getSHAPassword($args['pass']);
+        $name = isset($args['name'])? $args['name']:$args['login'];
         $table = $this->table('users');
-        $sql = "UPDATE $table SET pub_key='$id' WHERE login=?";
-        $cmd = $this->_exec($sql,array($args['login']));
-        if($cmd->rowCount() === 0) self::error(self::LOGIN_UNKNOWN,$args['login']);
-        return array('pub_key'=>$id);
-    }
-    private function setCookies($sid,$rm){
-        $expiry = ($rm == 1)? time()+$this->ses_l_time*24*3600:0;
-        $cookie_name = 'sid::'.$this->project->name;
-        setcookie ($cookie_name, $sid,$expiry,'/');
-        $_COOKIE[$cookie_name]=$sid;
-    }
-    public function createTable($name){
-        parent::createTable($name);
-        $table = $this->table($name);
-        switch ($name){
-            case 'users' :{
-                $pass = md5('admin');
-                $date = date(self::SQL_DATE_FORMAT);
-                $sql = "INSERT INTO $table (login,password,name,regdate,groups,active) VALUES("
-                    ."'admin','$pass', 'Administrator', '$date', '1',1"
-                .')';
-                $this->db->exec($sql);
-                break;
-            }
-            case 'groups' :{
-                $sql = "INSERT INTO $table (name,descr) VALUES"
-                    ."('admins', 'Administrators'),('users', 'Regular users'),('banned', 'Banned users')";
-                $this->db->exec($sql);
-                break;
-            }
+        $email = isset($args['email'])? $args['email']:'';
+        $date = date(self::SQL_DATE_FORMAT);
+        $active = ($this->regmode==='BASIC')?1:0;
+        if($this->regmode==='E-MAIL'){
+           if(!$email) self::error(self::EMAIL_REQUIRED);
+           $key = uniqid('');
         }
+        else $key='';
+        if($email) self::checkEmail($email);
+        $cmd = $this->db->prepare("INSERT INTO $table (login,password,name,email,regdate,active,pub_key) VALUES(?,?,?,?,?,?,?)");
+        $r = $cmd->execute(array($args['login'],$pass,$name,$email,$date,$active,$key));
+        if(!$r) {
+            if($cmd->errorCode()==='23000') self::error(self::LOGIN_EXISTS,$args['login']);
+            else $this->_dbError($cmd);
+        }
+        return;
+    }
+    private function getSHAPassword($enc_pass){
+        jq::get('TCryptLibrary')->load('RSA.php');
+        $rsa = new Crypt_RSA();
+        $r = $this->_getRSAKeys();
+        $p = base64_decode($enc_pass);
+        if(!$p) self::error(self::INVALID_PASSWORD_FORMAT);
+        try{
+            $rsa->loadKey($r['private']);
+            $rsa->setEncryptionMode(CRYPT_RSA_ENCRYPTION_PKCS1);
+            $fpass = $rsa->decrypt($p);
+        }
+        catch (Exception $e) {self::error(self::DECRYPTION_ERROR);}
+        $apass = explode('|',$fpass);
+        if(count($apass)!==2) self::error(self::INVALID_PASSWORD_FORMAT);
+        $pass = $apass[0];
+        self::checkPassword($pass);
+        return array(sha1($pass),$apass[1]);
+    }
+    static function  checkPassword($pass){
+        if(!preg_match(self::pass_regexp, $pass)) self::error(self::INVALID_PASSWORD_FORMAT);
+    }
+    static function checkEmail($email){
+        if(!preg_match(self::email_regexp, $email)) self::error(self::INVALID_EMAIL_FORMAT);
+    }
+    static function checkLogin($login){
+        if(!preg_match(self::login_regexp, $login)) self::error(self::INVALID_LOGIN_FORMAT);
+    }
+    private function _getRSAKeys(){
+        if(!file_exists($this->path.'/rsakeys.ini')){
+            jq::get('TCryptLibrary')->load('RSA.php');
+            $rsa = new Crypt_RSA();
+            $keys = $rsa->createKey($this->RSA_key_size);
+            $ini ="private=\"{$keys['privatekey']}\"\npublic=\"{$keys['publickey']}\""; 
+            if(!file_exists($this->path)) mkdir($this->path);
+            file_put_contents($this->path.'/rsakeys.ini', $ini);
+            return array('private'=>$keys['privatekey'],'public'=>$keys['publickey']);
+        }
+        else return parse_ini_file($this->path.'/rsakeys.ini');
     }
     public function getUserInfo(){
         $cookie_name = 'sid::'.$this->project->name;
@@ -413,6 +476,12 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             case self::ATTH_PHASE: {$msg = "Authentication phase 1 must be passed before";break;}
             case self::INVALID_PASSWORD: {$msg = "Invalid password";break;}
             case self::ACCESS_DENIED: {$msg = 'Access denied to "'.$args[2].'" command of "'.$args[1].'"'; break;}
+            case self::LOGIN_EXISTS: {$msg = 'Login "'.$args[1].'" already exists'; break;}
+            case self::EMAIL_REQUIRED: {$msg = 'Email required for "E-MAIL" registration mode'; break;}
+            case self::INVALID_PASSWORD_FORMAT: {$msg = 'Invalid password format. Password must match next regilar expression: '.self::pass_regexp; break;}
+            case self::INVALID_EMAIL_FORMAT: {$msg = 'Invalid e-mail format. E-mail must match next regilar expression: '.self::email_regexp; break;}
+            case self::INVALID_LOGIN_FORMAT: {$msg = 'Invalid login format. Login must match next regilar expression: '.self::login_regexp; break;}
+            case self::DECRYPTION_ERROR: {$msg = 'Decryption error'; break;}
             default: $msg = parent::_getErrorMsg($args);
         }
         return $msg;

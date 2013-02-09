@@ -26,6 +26,7 @@ class TComponent_ {
         if(!is_null($id)) $this->id = $id;
     }
     public function __get($name) {
+        if(!isset($this->project->db['components'][$this->id]['m'])) self::error(self::UNKNOWN_PROPERTY,$name);
         $embed = $this->project->db['components'][$this->id]['m'];
         if(!isset($embed[$name])) self::error(self::UNKNOWN_PROPERTY,$name);
         $mid = $embed[$name];

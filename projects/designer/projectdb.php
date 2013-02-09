@@ -335,6 +335,7 @@ array (
             0 => 'palette_page_1',
             1 => 'palette_page_2',
             2 => 'palette_page_3',
+            3 => 'palette_page_4',
           ),
         ),
         'titles' =>array (
@@ -343,6 +344,7 @@ array (
             0 => 'Стандартные',
             1 => 'Службы',
             2 => 'jquicks',
+            3 => 'libs',
           ),
         ),
         'active' =>array (
@@ -355,6 +357,7 @@ array (
             0 => 1,
             1 => 1,
             2 => 1,
+            3 => 1,
           ),
         ),
         'changable' =>array (
@@ -385,6 +388,7 @@ array (
             5 => 'TDataBase',
             6 => 'TLoginDialog',
             7 => 'TForm',
+            8 => 'TRegistrationForm',
           ),
         ),
       ),
@@ -447,6 +451,7 @@ array (
           0 => 14,
           1 => 15,
           2 => 46,
+          3 => 86,
         ),
         1 =>array (
           0 => 13,
@@ -2033,6 +2038,25 @@ array (
         ),
       ),
     ),
+    86 =>array (
+      'c' => 'TPalettePage',
+      'n' => 'palette_page_4',
+      'l' =>array (
+        20 => 1,
+      ),
+      'p' =>array (
+        'display' =>array (
+          0 => 'boolean',
+          1 => 1,
+        ),
+        'components' =>array (
+          0 => 'object',
+          1 =>array (
+            0 => 'TCryptLibrary',
+          ),
+        ),
+      ),
+    ),
   ),
   'names' =>array (
     'pages' => 0,
@@ -2111,6 +2135,7 @@ array (
     'modelpagecontrol_1' => 83,
     'frm_new_news' => 84,
     'projects' => 85,
+    'palette_page_4' => 86,
   ),
   'classes' =>array (
     'TPage' =>array (

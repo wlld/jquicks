@@ -11,8 +11,9 @@ class TDBService_ extends TService_{
     const FIELD_NOT_EXISTS = 209;
     const TABLE_EXISTS = 210;
 
+    const SQL_DATE_FORMAT = 'Y-m-d h:i:s';
     private $_xml;
-    private $db;
+    protected $db;
     public function insertIntoProject($parent, $section, $order, $page, $name = null) {
         if(!$this->project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
         parent::insertIntoProject($parent, $section, $order, $page, $name);
@@ -43,12 +44,13 @@ class TDBService_ extends TService_{
         $tables = $this->_getDbTables();
         foreach($this->_getTables() as $table){
             $tname = $this->table($table);
-            if(!in_array($tname, $tables)) {
-                $sql = $this->_getTableCreate($table,$tname);
-                if ($this->db->exec($sql)===false) $this->_dbError();
-            }
+            if(!in_array($tname, $tables)) $this->createTable ($table, $tname);
             else  $this->_catchTable($table,$tname);
         }
+    }
+    public function createTable($name,$tname){
+        $sql = $this->_getTableCreate($name,$tname);
+        if ($this->db->exec($sql)===false) $this->_dbError();
     }
     protected function table($n){return strtolower($this->name).'_'.$n; }
     protected function _getTableCreate($name,$tname){

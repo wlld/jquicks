@@ -14,6 +14,7 @@ class TProject{
     private $_file;
     private $_comp_id = array(); //Ассоциативный массив компонентв с ключами-id
     private $_comp_name = array(); //Ассоциативный массив компонентв с ключами-name
+    private $_events = array(); //Обработчики событий {event:[[object,method]]}
     
     function __construct($project){
         $this->path = $_SERVER['DOCUMENT_ROOT'].'/projects/'.$project;
@@ -102,6 +103,15 @@ class TProject{
             default: $msg = 'Unknown error';
         }
         throw new Exception($msg,$code);
+    }
+    public function registerEventHandler($event,$object,$method){
+        $this->_events[$event][] = array($object,$method);
+    }
+    public function event($event,$args=null){
+        if(isset($this->_events[$event]))
+            foreach($this->_events[$event] as $h){
+                call_user_func($h,$args);
+            }
     }
 }
 function __autoload($class) {

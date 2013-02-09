@@ -13,7 +13,8 @@ abstract class TComponent {
     private $_embedded = false;
     private $_dbmnt = array();
 
-    public function __construct($struc=null){
+    public function __construct($project,$struc=null){
+        $this->project = $project;
         if($struc){
             $this->name = $struc['n'];
             $this->_embedded = $struc['l']===false;
@@ -34,9 +35,8 @@ abstract class TComponent {
         if(!isset($project->db['components'][$id])) self::error(self::COMPONENT_NOT_FOUND,$id);
         $struc = $project->db['components'][$id];
         $class = $struc['c'];
-        $c = new $class($struc);
+        $c = new $class($project,$struc);
         $c->id = $id;
-        $c->project = $project;
         $c->path = $project->path.'/'.$id;
         return $c;
     }
@@ -97,6 +97,6 @@ abstract class TComponent {
     }
     public static function isCoreClass($class){
         return in_array($class,array('TComponent','TVidget','TModel','TCacheModel','TActionServer','TContainer','TPage',
-        'TService','TDBService','TDataBase','TAccountService','TLoginDialog'));
+        'TService','TDBService','TDataBase','TAccountService','TLoginDialog','TLibrary','TCryptLibrary'));
     }
 }
