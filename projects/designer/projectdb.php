@@ -245,7 +245,7 @@ array (
       'p' =>array (
         'display' =>array (
           0 => 'boolean',
-          1 => 0,
+          1 => 1,
         ),
       ),
       'm' =>array (
@@ -505,8 +505,9 @@ array (
         ),
       ),
       'u' =>array (
-        0 => 18,
-        1 => 19,
+        0 => 86,
+        1 => 18,
+        2 => 19,
       ),
       's' =>array (
         0 =>array (
@@ -2035,6 +2036,23 @@ array (
         ),
       ),
     ),
+    86 =>array (
+      'c' => 'TLibrary',
+      'n' => 'lib_ace',
+      'l' =>array (
+        20 => 1,
+      ),
+      'p' =>array (
+        'library' =>array (
+          0 => 'string',
+          1 => 'ace',
+        ),
+        'autoload' =>array (
+          0 => 'string',
+          1 => 'ace.js',
+        ),
+      ),
+    ),
   ),
   'names' =>array (
     'pages' => 0,
@@ -2113,6 +2131,7 @@ array (
     'modelpagecontrol_1' => 83,
     'frm_new_news' => 84,
     'projects' => 85,
+    'lib_ace' => 86,
   ),
   'classes' =>array (
     'TPage' =>array (
@@ -2198,6 +2217,8 @@ array (
     ),
     'TForm' =>array (
       0 => 'TVidget',
+    ),
+    'TLibrary' =>array (
     ),
   ),
 )

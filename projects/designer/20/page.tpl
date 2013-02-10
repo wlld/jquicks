@@ -97,9 +97,7 @@
 <div class="cmdpanel">
 <div onclick="jq.get('js_editor').save()">Сохранить</div>
 </div>
-<div class='content'>
-<textarea spellcheck='false'>{{this->jsmodel#js|escape}}</textarea>
-</div>
+<div id="js_content"></div>
 <!--js_editor-->
 <!--palette_page_1-->
 {{foreach from=this->components item=cmp}}
