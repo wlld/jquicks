@@ -23,9 +23,9 @@ class TAccountService_ extends TDBService_{
     }
     public function applyProperty(&$cmp,$name,$val) {
         if ($name == 'RSA_key_length'){
-            $this->project->getByName('TCryptLibrary')->load('RSA.php');
+            TProject::loadLibraryFile('crypt','RSA.php');
             $rsa = new Crypt_RSA();
-            $keys = $rsa->createKey($val);
+            $keys = $rsa->createKey((integer)$val);
             $ini ="private=\"{$keys['privatekey']}\"\npublic=\"{$keys['publickey']}\""; 
             $path = $this->project->path.'/'.$this->id;
             if(!file_exists($path)) mkdir($path);
