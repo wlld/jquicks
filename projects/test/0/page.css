@@ -1,0 +1,75 @@
+/*index*/
+body {
+  margin:0px;
+  padding:0px;
+  font-family:Arial,sans-serif,Helvetica,Verdana,Geneva;
+  font-size:16px;
+}
+
+/*index*/
+/*cap*/
+#cap{
+  border: #555 1px solid;
+  background-color: #F5F5F5;
+  text-align:center;
+  margin:10px;
+}
+/*cap*/
+/*regform*/
+#regform{
+  position:fixed;
+  left:0;right:0;top:0;bottom:0;
+  background: rgba(0,0,0,0.5);
+  display:none;
+}
+#regform header button{
+ float:right;
+}
+#regform>div{
+  width:480px;
+  height:210px;
+  margin: 100px auto 0 auto;
+  border: #555 1px solid;
+  background-color:#DDD;
+  box-shadow: 0 0 5px #000;
+}
+#regform header{
+  background-color: #F5F5F5;
+  padding:2px;
+  height:26px;
+}
+#regform header span{
+  display:inline-block;
+  margin:4px 0 0 5px;
+}
+#regform form{
+  padding:10px;
+}
+#regform form>div{
+  padding-left:20px;
+}
+#regform center{
+  padding:15px;
+}
+#regform .big_button{
+  height:30px;
+}
+#regform .loader{
+  padding-top:20px;
+  background-image:url(../data/ajax-loader-3.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+  height:150px;
+}
+#regform .centered {
+  text-align:center;
+}
+/*regform*/
+/*vidget_1*/
+#vidget_1{
+  border: #555 1px solid;
+  background-color: #F5F5F5;
+  text-align:center;
+  padding:2px;
+}
+/*vidget_1*/

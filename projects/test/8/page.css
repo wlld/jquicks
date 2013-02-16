@@ -1,0 +1,129 @@
+/*topics*/
+.section{
+  border: #555 1px solid;
+  padding:2px;
+}
+.ajax_loader{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  background-color:#fff;
+  background-image:url(/projects/site/data/image/ajax-loader.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+  opacity:0.8;
+}
+/*topics*/
+/*vtopics*/
+#vtopics div{
+float:right;
+cursor:pointer;
+text-decoration:underline;
+}
+#vtopics tr:hover{
+background-color:#EEF;
+}
+#vtopics table{
+  width:100%;
+  border-collapse: collapse;
+}
+#vtopics table tr:first-child{
+ background-color:#EEE;
+}
+#vtopics table td{
+ border-bottom:#555 1px solid;
+}
+.msgcount{
+  width:100px;
+}
+.actions{
+  width:70px;
+}
+.lastmsg{
+  width:170px;
+}
+/*vtopics*/
+/*frm_new_topic*/
+#frm_new_topic{
+  border: #555 1px solid;
+  background-color: #F5F5F5;
+  text-align:center;
+  padding:2px;
+}
+#frm_new_topic .input{
+  width:80%;
+}
+/*frm_new_topic*/
+/*logindialog_1*/
+#logindialog_1{
+  width:300px;
+  float:right;
+  text-align:right;
+  clear:both;
+}
+#logindialog_1 input{
+  width:100px;
+}
+/*logindialog_1*/
+/*vidget_2*/
+#vidget_2{
+ clear:right;
+ float:right;
+ padding-bottom:20px;
+ text-decoration:underline;
+ cursor:pointer;
+}
+/*vidget_2*/
+/*frm_registration*/
+#frm_registration{
+  position:fixed;
+  left:0;right:0;top:0;bottom:0;
+  background: rgba(0,0,0,0.5);
+  display:none;
+}
+#frm_registration header button{
+ float:right;
+}
+#frm_registration>div{
+  width:480px;
+  height:210px;
+  margin: 100px auto 0 auto;
+  border: #555 1px solid;
+  background-color:#DDD;
+  box-shadow: 0 0 5px #000;
+}
+#frm_registration header{
+  background-color: #F5F5F5;
+  padding:2px;
+  height:26px;
+}
+#frm_registration header span{
+  display:inline-block;
+  margin:4px 0 0 5px;
+}
+#frm_registration form{
+  padding:10px;
+}
+#frm_registration form>div{
+  padding-left:20px;
+}
+#frm_registration center{
+  padding:15px;
+}
+#frm_registration .big_button{
+  height:30px;
+}
+#frm_registration .loader{
+  padding-top:20px;
+  background-image:url(../data/ajax-loader-3.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+  height:150px;
+}
+#frm_registration .centered {
+  text-align:center;
+}
+/*frm_registration*/

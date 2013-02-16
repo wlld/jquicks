@@ -1,0 +1,96 @@
+/*discuss*/
+.section{
+  border: #555 1px solid;
+  padding:2px;
+}
+.ajax_loader{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  background-color:#fff;
+  background-image:url(../data/ajax-loader.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+  opacity:0.8;
+}
+/*discuss*/
+/*vdiscuss*/
+#vdiscuss article{
+  border: #555 1px solid;
+  background-color: #F5F5F5;
+  margin:10px;
+}
+#vdiscuss  header{
+  background-color: #CCC;
+  padding:2px;
+}
+#vdiscuss footer{
+  background-color: #CCC;
+  padding:2px;
+}
+.content{
+  padding: 10px;
+}
+#vdiscuss  .msg_owner{
+  float:right;
+}
+/*vdiscuss*/
+/*pager*/
+#pager{
+  text-align:center;
+  padding:2px;
+}
+#pager li{
+  display:inline;
+  cursor:pointer;
+}
+#pager .selected{
+  font-weight:bold;
+  cursor:default;
+  text-decoration:underline;
+  color:blue;
+}
+#pager ul{
+  margin:0;
+  padding:0;
+}
+/*pager*/
+/*newmsg*/
+#newmsg{
+  border: #555 1px solid;
+  padding:2px;
+}
+#newmsg textarea{
+  resize:none;
+  width:100%;
+  box-sizing: border-box;
+ -moz-box-sizing: border-box;
+ -webkit-box-sizing: border-box;
+}
+#newmsg header{
+  border: #555 1px solid;
+  background-color:#AAA;
+  padding:2px;
+  text-align:center;
+}
+/*newmsg*/
+/*editor*/
+#editor{
+ display:none;
+}
+#editor textarea{
+  height:100%;
+  width:80%;
+  box-sizing: border-box;
+ -moz-box-sizing: border-box;
+  background-color:#FFC;
+  border:0;
+}
+#editor footer{
+  padding:2px;
+  background-color:#CCC;
+}
+/*editor*/
