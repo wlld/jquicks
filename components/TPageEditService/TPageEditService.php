@@ -600,8 +600,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             $r_type = $childs_designer->getRatingType($v['child'],$l[5],$l[3]);
             $parent_designer = TComponent_::getDesigner((integer)$l[0], $this->_ed_project);
             $parent_designer->addRatingField($l[2],$l[6],$r_type);
-            $ptable = strtolower($this->_ed_project->getNameById((integer)$l[0]).'_'.$l[2]);
-            $ctable = strtolower($cmp['n'].'_'.$v['child']);
+            $ptable = self::getTableName($this->_ed_project->getNameById((integer)$l[0]),$l[2]);
+            $ctable = self::getTableName($cmp['n'],$v['child']);
             $parent_designer->updateAllRatings($ptable,$ctable,$l[4],$l[3],$l[5],$l[6]);
         }
         else{ //link
@@ -645,8 +645,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                 $parent_designer = TComponent_::getDesigner((integer)$link[0], $this->_ed_project);
                 $parent_designer->changeRatingField($link[2],$old_link[6],$link[6],$r_type);
                 if(isset($v['op'])||isset($v['rfield'])){
-                    $ptable = strtolower($this->_ed_project->getNameById((integer)$link[0]).'_'.$link[2]);
-                    $ctable = strtolower($cmp['n'].'_'.$idx[3]);
+                    $ptable = self::getTableName($this->_ed_project->getNameById((integer)$link[0]),$link[2]);
+                    $ctable = self::getTableName($cmp['n'],$idx[3]);
                     $parent_designer->updateAllRatings($ptable,$ctable,$link[4],$link[3],$link[5],$link[6]);
                 }
             }

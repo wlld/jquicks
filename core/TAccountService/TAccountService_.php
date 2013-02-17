@@ -7,14 +7,14 @@ class TAccountService_ extends TDBService_{
             case 'users' :{
                 $pass = sha1('admin');
                 $date = date(self::SQL_DATE_FORMAT);
-                $sql = "INSERT INTO $table (login,password,name,regdate,groups,active) VALUES("
+                $sql = "INSERT INTO `$table` (login,password,name,regdate,groups,active) VALUES("
                     ."'admin','$pass', 'Administrator', '$date', '1',1"
                 .')';
                 $this->db->exec($sql);
                 break;
             }
             case 'groups' :{
-                $sql = "INSERT INTO $table (name,descr) VALUES"
+                $sql = "INSERT INTO `$table` (name,descr) VALUES"
                     ."('admins', 'Administrators'),('users', 'Regular users'),('banned', 'Banned users')";
                 $this->db->exec($sql);
                 break;

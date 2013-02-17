@@ -1,4 +1,0 @@
-<components>
-    <prp name='database' type='component(TDataBase)' />
-    <prp name='security' type='list["on","off","training"]'>off</prp>
-</components>
