@@ -82,8 +82,15 @@ class TDBService_ extends TService_{
         foreach($this->_getTables() as $table){
             $told = self::getTableName($oldname,$table);
             $tnew = self::getTableName($newname,$table);
-            if(in_array($tnew, $tbls)) self::error(self::TABLE_EXISTS,$tnew);
-            $tt[] = "`$told` TO `$tnew`";
+            if(in_array($tnew, $tbls)) {
+                switch($this->property_set_mode){
+                    case 0:self::error(self::TABLE_EXISTS,$tnew);
+                    //TODO: need to check for a foreign keys before drop table                       
+                    case 1:if ($this->db->exec("DROP TABLE `$told`")===false) $this->_dbError();
+                    case 2: $this->_catchTable($table,$tnew);
+                }
+            }
+            else $tt[] = "`$told` TO `$tnew`";
         }
         if($tt){
             $sql = 'RENAME TABLE '.join(',', $tt);

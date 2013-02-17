@@ -405,12 +405,11 @@ array (
         'components' =>array (
           0 => 'object',
           1 =>array (
-            0 => 'TTableCtrlService',
-            1 => 'TPageEditService',
-            2 => 'TAccountService',
-            3 => 'TForumService',
-            4 => 'TDiscussService',
-            5 => 'TServiceController',
+            0 => 'TPageEditService',
+            1 => 'TAccountService',
+            2 => 'TForumService',
+            3 => 'TDiscussService',
+            4 => 'TServiceController',
           ),
         ),
       ),

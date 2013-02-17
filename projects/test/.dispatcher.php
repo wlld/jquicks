@@ -50,7 +50,7 @@ class Jq {
                 $c = self::get($command['service']);
                 if(!$c instanceof ICommandServer) throw new Exception($c->name.' can not execute commands.');
                 $result = $c->run($command['method'],$command['args']);
-                $result['status'] = 0;
+                if(!isset($result['status'])) $result['status'] = 0;
                 self::$answer[] = $result;
             }
             catch(Exception $e) {self::$answer[] = array('status'=>$e->getCode(), 'errortext'=>$e->getMessage());}

@@ -9,7 +9,7 @@ var jq = new function(){
     };
 
     this.event = function(obj,event,e){
-        var h,ev;
+        var h,ev,r;
         if (ev = _events[event]){
             if (typeof obj === 'string') h=ev[obj];
             else if (typeof obj === 'object'){
@@ -21,10 +21,12 @@ var jq = new function(){
             } 
             else return;
             if (h) for(var i = h.length-1; i>=0; i--) {
-                if(typeof h[i]==='function') {if (h[i](e)===true) break;}
-                else if (typeof h[i] === 'object') {if(h[i][0][h[i][1]](e)===true) break;};
+                if(typeof h[i]==='function') r = h[i](e);
+                else if (typeof h[i] === 'object') r = h[i][0][h[i][1]](e);
+                if (r) return true;
             }
         }
+        return false;
     };
     this.registerEventHandler = function(cname,event,handler){
         if(!_events[event]) _events[event] = {};
@@ -183,14 +185,16 @@ jq.newClass('CModel','CComponent',{
         else  this._setState(jq.STATE_ERROR);
     },
     _onUpdate:function(data) {
+        var c;
+        if(data.id !== undefined){
+            c = this.queie[data.id];
+            c.status = data.status;
+        } else c = data;
         if(data.status == 0){
-            var c = this.queie[data.id];
-            if(c){
-                for(var f in c.values) if(c.values.hasOwnProperty(f)) this.rows[c.row][f] = c.values[f];
-            }
-            jq.event(this,'onupdate',c);
+            for(var f in c.values) if(c.values.hasOwnProperty(f)) this.rows[c.row][f] = c.values[f];
             this.queie[data.id] = null;
         }
+        return jq.event(this,'onupdate',c);
     },
     _onInsert:function(data) {
         if(data.status === 0) jq.event(this,'oninsert');

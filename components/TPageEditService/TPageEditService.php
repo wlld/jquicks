@@ -20,7 +20,7 @@ private static $_definition_struc = array (
     'properties' =>array (
       'p' => 'a:3:{s:7:"project";a:2:{i:0;i:3;i:1;b:1;}s:4:"page";a:2:{i:0;i:3;i:1;b:1;}s:9:"component";a:2:{i:0;i:1;i:1;b:1;}}',
       'i' => 'a:0:{}',
-      'u' => 'a:1:{s:1:"v";a:2:{i:0;i:0;i:1;b:0;}}',
+      'u' => 'a:2:{s:1:"v";a:2:{i:0;i:0;i:1;b:0;}s:4:"mode";a:2:{i:0;i:1;i:1;b:0;}}',
       'f' => 'a:6:{s:3:"idx";i:3;s:1:"n";i:3;s:1:"t";i:3;s:1:"o";i:3;s:1:"v";i:0;s:1:"d";i:3;}',
       'owner' => false,
     ),
@@ -207,7 +207,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $this->_loadEditingProject($idx[0]);
         $id = (integer)$idx[1];
         $designer = TComponent_::getDesigner($id, $this->_ed_project);//new
-        $designer->setProperty($idx[2],$val['v']);//
+        if(isset($val['mode'])) $designer->setProperty($idx[2],$val['v'],$val['mode']);
+        else $designer->setProperty($idx[2],$val['v']);
         if(($idx[2]==='sections')&&($this->_is_a($id, 'TComponent'))) $this->_updated_models[] = 'page';
     }
     public function _insert_page_model($args){

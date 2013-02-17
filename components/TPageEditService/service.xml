@@ -33,6 +33,7 @@
     <field name="o" desc="Массив возможных значений в формате json" type="CHAR" fetch="1" />
     <field name="v" desc="Значение" type="ANY" fetch="1" update="1"/>
     <field name="d" desc="Краткое описание свойства" type="CHAR" fetch="1" />
+    <field name="mode" desc="Опции обновления свойства (зависят от конкретного свойства)" type="INTEGER" update="1"/>
     <param name="project" desc="Имя проекта" type="CHAR" required="1" />
     <param name="page" desc="Имя страницы" type="CHAR" required="1" />
     <param name="component" desc="Идентификатор компонента" type="INTEGER" required="1" />

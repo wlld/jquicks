@@ -119,12 +119,17 @@ class TModel extends TComponent implements ICommandServer{
                 return array();
             }
             case 'update': {
-                if (!isset($arg['index'])) self::error(self::ARGUMENT_REQUIRED,'index');
-                if (!isset($arg['values'])) self::error(self::ARGUMENT_REQUIRED,'values');
-                if (!isset($arg['id'])) self::error(self::ARGUMENT_REQUIRED,'id');
-                $this->srv->checkTypes($this->model,$arg['values'],CHECK_UPDATE_FIELDS);
-                $this->_testRights($cmd,$arg,array($this,'isOwnersRecord'));
-                $this->srv->queryModel($this->model,$cmd,$arg);
+                try{
+                    if (!isset($arg['index'])) self::error(self::ARGUMENT_REQUIRED,'index');
+                    if (!isset($arg['values'])) self::error(self::ARGUMENT_REQUIRED,'values');
+                    if (!isset($arg['id'])) self::error(self::ARGUMENT_REQUIRED,'id');
+                    $this->srv->checkTypes($this->model,$arg['values'],CHECK_UPDATE_FIELDS);
+                    $this->_testRights($cmd,$arg,array($this,'isOwnersRecord'));
+                    $this->srv->queryModel($this->model,$cmd,$arg);
+                }
+                catch(Exception $e){
+                    return array('status'=>$e->getCode(), 'errortext'=>$e->getMessage(),'id'=>$arg['id']);
+                }
                 return array('id'=>$arg['id']);
             }
             case 'remove': {
