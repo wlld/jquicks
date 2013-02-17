@@ -1,5 +1,9 @@
 <?php
 class TLoginDialog extends TVidget{
+    public function __construct($project,$struc = null) {
+        parent::__construct($project,$struc);
+        $project->registerEventHandler('ondrawheader',$this,'drawHeader');
+    }
     public $display = 1;      //External
     public $updatible = 1;    //External
     protected $client_fields = array('user_id','user_name');
@@ -11,5 +15,9 @@ class TLoginDialog extends TVidget{
             default:parent::__get($name);
         }    
     }
+    public function drawHeader(){
+        $path = $this->project->getLibraryPath('crypt').'/client/';
+        jq::$page->drawLibrary($path.'rsa.js');
+    }   
 }
 ?>

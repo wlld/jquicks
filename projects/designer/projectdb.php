@@ -245,7 +245,7 @@ array (
       'p' =>array (
         'display' =>array (
           0 => 'boolean',
-          1 => 0,
+          1 => 1,
         ),
       ),
       'm' =>array (
@@ -335,7 +335,6 @@ array (
             0 => 'palette_page_1',
             1 => 'palette_page_2',
             2 => 'palette_page_3',
-            3 => 'palette_page_4',
           ),
         ),
         'titles' =>array (
@@ -344,7 +343,6 @@ array (
             0 => 'Стандартные',
             1 => 'Службы',
             2 => 'jquicks',
-            3 => 'libs',
           ),
         ),
         'active' =>array (
@@ -357,7 +355,6 @@ array (
             0 => 1,
             1 => 1,
             2 => 1,
-            3 => 1,
           ),
         ),
         'changable' =>array (
@@ -389,6 +386,7 @@ array (
             6 => 'TLoginDialog',
             7 => 'TForm',
             8 => 'TRegistrationForm',
+            9 => 'TLibrary',
           ),
         ),
       ),
@@ -451,7 +449,6 @@ array (
           0 => 14,
           1 => 15,
           2 => 46,
-          3 => 86,
         ),
         1 =>array (
           0 => 13,
@@ -508,8 +505,9 @@ array (
         ),
       ),
       'u' =>array (
-        0 => 18,
-        1 => 19,
+        0 => 86,
+        1 => 18,
+        2 => 19,
       ),
       's' =>array (
         0 =>array (
@@ -2039,21 +2037,19 @@ array (
       ),
     ),
     86 =>array (
-      'c' => 'TPalettePage',
-      'n' => 'palette_page_4',
+      'c' => 'TLibrary',
+      'n' => 'lib_ace',
       'l' =>array (
         20 => 1,
       ),
       'p' =>array (
-        'display' =>array (
-          0 => 'boolean',
-          1 => 1,
+        'library' =>array (
+          0 => 'string',
+          1 => 'ace',
         ),
-        'components' =>array (
-          0 => 'object',
-          1 =>array (
-            0 => 'TCryptLibrary',
-          ),
+        'autoload' =>array (
+          0 => 'string',
+          1 => 'ace.js',
         ),
       ),
     ),
@@ -2135,7 +2131,7 @@ array (
     'modelpagecontrol_1' => 83,
     'frm_new_news' => 84,
     'projects' => 85,
-    'palette_page_4' => 86,
+    'lib_ace' => 86,
   ),
   'classes' =>array (
     'TPage' =>array (
@@ -2221,6 +2217,8 @@ array (
     ),
     'TForm' =>array (
       0 => 'TVidget',
+    ),
+    'TLibrary' =>array (
     ),
   ),
 )

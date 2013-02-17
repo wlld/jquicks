@@ -140,7 +140,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         return array('rows'=>$rows,'count'=>count($rows));
     }
     protected function authenticationPhase1($args){ //command
-        $id = substr(uniqid(''),0,6);
+        $id = substr(uniqid(''),7);
         $table = self::getTableName($this->name,'users');
         $sql = "UPDATE `$table` SET pub_key='$id' WHERE login=?";
         $cmd = $this->_exec($sql,array($args['login']));
@@ -157,7 +157,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $cmd = $this->_exec($sql,array($args['login']));
         if($cmd->rowCount()!==0){
             $row = $cmd->fetch(PDO::FETCH_ASSOC);
-            $sql = "UPDATE `$table` SET pub_key='' WHERE login=?";
+            $sql = "UPDATE `$table` SET pub_key='' WHERE idx=?";
             $this->_exec($sql, array($row['idx']));
         }
         $this->db->commit();
@@ -223,7 +223,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         return;
     }
     private function getSHAPassword($enc_pass){
-        jq::get('TCryptLibrary')->load('RSA.php');
+        TProject::loadLibraryFile('crypt','RSA.php');
         $rsa = new Crypt_RSA();
         $r = $this->_getRSAKeys();
         $p = base64_decode($enc_pass);
@@ -251,7 +251,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     private function _getRSAKeys(){
         if(!file_exists($this->path.'/rsakeys.ini')){
-            jq::get('TCryptLibrary')->load('RSA.php');
+            TProject::loadLibraryFile('crypt','RSA.php');
             $rsa = new Crypt_RSA();
             $keys = $rsa->createKey($this->RSA_key_size);
             $ini ="private=\"{$keys['privatekey']}\"\npublic=\"{$keys['publickey']}\""; 

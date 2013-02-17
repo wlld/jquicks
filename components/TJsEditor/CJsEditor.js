@@ -10,14 +10,29 @@ jq.newClass('CJsEditor','CVidget',{
         if (this.jsmodel.state == jq.STATE_EMPTY)  this.jsmodel.fetch();
         this.id.style.display = "block";
     },
+    onload:function (){
+    	jq.CJsEditor.superclass.onload.call(this);
+        if(window.ace){
+            try{
+              this.editor = ace.edit("js_content");
+              this.editor.getSession().setMode("ace/mode/javascript");
+            } catch(e){};
+        }
+    },
     save:function(){
-        var text = this.id.getElementsByTagName('textarea')[0].value;
-        this.jsmodel.update({js:text},[0],true);
+        var text = this.editor.getValue();
+        this.jsmodel.update({
+            js:text
+        },[0],true);
     },
     _onUpdate:function(e){jq.event(this,'onupdate',{})},
     _changePage:function(e){
         this.jsmodel.params.page=e.page;
         if((e.page == '')||(this.id.offsetHeight+this.id.offsetHeight ==0)) this.jsmodel.clear();
         else this.jsmodel.fetch();
+    },
+    redraw:function(){
+        this.editor.setValue(this.jsmodel.rows[0].js);
+        this.editor.clearSelection();
     }
 });

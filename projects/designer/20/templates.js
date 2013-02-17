@@ -1,9 +1,6 @@
 jq.attachMethod('template','js_editor',function(){
-//uses escape
 var __r='';
-__r+="<div class=\"cmdpanel\"><div onclick=\"jq.get(\'js_editor\').save()\">Сохранить</div></div><div class=\'content\'><textarea spellcheck=\'false\'>";
-__r+=jq.ex.escape(this.jsmodel.getField('js'));
-__r+="</textarea></div>";
+__r+="<div class=\"cmdpanel\"><div onclick=\"jq.get(\'js_editor\').save()\">Сохранить</div></div><div id=\"js_content\"></div>";
 return __r;
 });//js_editor.template
 jq.attachMethod('template','tpleditor',function(){
