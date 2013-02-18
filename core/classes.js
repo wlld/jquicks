@@ -1,35 +1,49 @@
 var jq = new function(){
     var _c = {}; //components list
-    var _events = {}; //events list
+    var _ev_class = {}; //class events list
+    var _ev_cmp = {}; //components events list
+    var _ev_ext = {}; //external events list
     this.ex = {}; //extern functions
-    window.onload = function(){ jq.event('window','onload',{})};
+    window.onload = function(){ jq.event(null,'onload',{})};
 
     this.CComponent = function (params){
         for (var p in params) if(params.hasOwnProperty(p)) this[p] = params[p];
     };
 
     this.event = function(obj,event,e){
-        var h,ev;
-        if (ev = _events[event]){
-            if (typeof obj === 'string') h=ev[obj];
-            else if (typeof obj === 'object'){
-                h = ev[obj.name];
-                if(ev[obj.constructor.cname]){
-                    if (h) h = h.concat(ev[obj.constructor.cname])
-                    else h = ev[obj.constructor.cname];
-                }
-            } 
-            else return;
-            if (h) for(var i = h.length-1; i>=0; i--) {
-                if(typeof h[i]==='function') {if (h[i](e)===true) break;}
-                else if (typeof h[i] === 'object') {if(h[i][0][h[i][1]](e)===true) break;};
-            }
+        var r;
+        if(obj===null) return this._runEvents(_ev_ext[event],e);
+        else{
+            r = _ev_cmp[event] && this._runEvents(_ev_cmp[event][obj.name],e);
+            if(r) return true;
+            return _ev_class[event] && this._runEvents(_ev_class[event][obj.constructor.cname],e);
         }
     };
+    this._runEvents = function(events,e){
+    var r,i;    
+        if(typeof events==='object'){
+            for(i = events.length-1; i>=0; i--) {
+                if(typeof events[i]==='function') r = events[i](e);
+                else if(typeof events[i]==='object') r = events[i][0][events[i][1]](e);
+                if(r) return true;
+            }
+        }
+        return false;
+    };
     this.registerEventHandler = function(cname,event,handler){
-        if(!_events[event]) _events[event] = {};
-        if(!_events[event][cname]) _events[event][cname] = [];
-        _events[event][cname].push(handler);
+    var e;    
+        if(!cname) e = _ev_ext;
+        else if (typeof this[cname]==='function') e = _ev_class;
+        else e = _ev_cmp;
+        if(cname){
+            if(!e[event]) e[event] = {};
+            if(!e[event][cname]) e[event][cname] = [];
+            e[event][cname].push(handler);
+        }
+        else{
+            if(!e[event]) e[event] = [];
+            e[event].push(handler);
+        };
     };
     this.newClass = function(newclass,parent,mtds){
         if(typeof this[parent] !== 'function') throw new Error(parent+' is not exists');
@@ -67,7 +81,7 @@ jq.newClass('CVidget','CComponent',{
        this.view_model = '';
        this.show_loader = 0; 
        jq.CVidget.superclass.constructor.apply(this,arguments);
-       jq.registerEventHandler("window","onload",[this,'onload']);
+       jq.registerEventHandler(null,"onload",[this,'onload']);
        if(this.view_model != ''){
            jq.registerEventHandler(this.view_model,"onfetch",[this,'redraw']);
            jq.registerEventHandler(this.view_model,"onupdate",[this,'redraw']);
