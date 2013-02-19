@@ -264,15 +264,15 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $r = self::$db->query('SHOW TABLES');
         if(!$r) self::_dbError();
         $tbls = $r->fetchAll(PDO::FETCH_COLUMN,0);
-        $child_table = strtolower($args['cservice'].'_'.$args['child']);
-        $parent_table = strtolower($args['service'].'_'.$args['parent']);
+        $child_table = self::getTableName($args['cservice'],$args['child']);
+        $parent_table = self::getTableName($args['service'],$args['parent']);
         if(!in_array($child_table, $tbls)) return array('unlinked_rows'=>0);
         if(!in_array($parent_table, $tbls)){
              $tocmp = $project->getByName($args['service']);
              $tocmp->createTable($args['parent']);
         }
-        $sql = "SELECT count(*) FROM $child_table AS a ".
-               "LEFT OUTER JOIN $parent_table AS b ON (a.`{$args['lfield']}`=b.idx) ".
+        $sql = "SELECT count(*) FROM `$child_table` AS a ".
+               "LEFT OUTER JOIN `$parent_table` AS b ON (a.`{$args['lfield']}`=b.idx) ".
                "WHERE (b.idx is NULL) AND (a.`{$args['lfield']}` is NOT NULL)";
         $r = self::$db->query($sql);
         if(!$r) self::_dbError();
@@ -282,8 +282,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $project = jq::getProject($args['project']);
         if(!$project->isComponentExists('TDataBase')) self::error(self::DB_NOT_FOUND);
         self::$db = $project->getByName('TDataBase')->db;
-        $child = strtolower($args['cservice'].'_'.$args['child']);
-        $parent = strtolower($args['service'].'_'.$args['parent']);
+        $child = self::getTableName($args['cservice'],$args['child']);
+        $parent = self::getTableName($args['service'],$args['parent']);
         $field = $args['lfield'];
         if($args['mode']==='DELETE')
             $sql = "DELETE c FROM `$child` AS c LEFT JOIN `$parent` AS p ON c.`$field` = p.idx  WHERE p.idx IS NULL";

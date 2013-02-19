@@ -231,6 +231,37 @@ h3 table td+td{
 #prpeditor textarea {
   resize:none;
 }
+.confirm_dlg{
+  position:fixed;
+  left:0;right:0;top:0;bottom:0;
+  background: rgba(0,0,0,0.5);
+  z-index:2;
+}
+.confirm_dlg>DIV{
+  position:absolute;
+  left: 50%; top: 50%;
+  width:500px;
+  height:200px;
+  margin-left:-250px;
+  margin-top:-100px;
+  border: #555 1px solid;
+  background-color:#DDD;
+  box-shadow: 0 0 5px #000;
+}
+.confirm_dlg>DIV>DIV{
+  padding:15px;
+}
+.confirm_dlg .centered{
+  margin-top:10px;
+  text-align:center;
+}
+.confirm_dlg button{
+  height:26px;
+}
+.confirm_dlg header{
+  background-color: #F5F5F5;
+  padding:5px;
+}
 /*prpeditor*/
 /*csseditor*/
 #csseditor textarea{
@@ -355,20 +386,14 @@ h3 table td+td{
     bottom:0;
     position: absolute;
 }
-#js_editor .content{
-    top:20px;
-    bottom:0;
-    left: 0;
-    right:0;
-    position: absolute;
-    border: 0;
-}
-#js_editor textarea {
-    width:100%;
-    height:100%;
-    resize:none;
-    margin:0; padding:0;
-    border: 0;
+
+#js_content { 
+  position: absolute;
+  top: 20px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index:0;
 }
 /*js_editor*/
 .loading{
@@ -634,6 +659,3 @@ wbr{
   margin-bottom:5px;
 }
 /*linkspeededitor*/
-/*palette_page_4*/
-
-/*palette_page_4*/

@@ -30,36 +30,47 @@ jq.newClass('CPrpEditor','CVidget',{
         this.cval[row] = {val:v,obj:obj};
         obj.className = 'changed';
     },
-    save:function(){
+    save:function(mode){
         var i,l,v = this.cval;
         for (i=0,l=v.length;i<l; i++) {
             if (v[i]) {
                 var row = this.prpmodel.rows[i];
-                if(row.n=='name') this.old_name = row.v;
-                this.prpmodel.update({v:v[i].val}, i);
+                var args = {v:v[i].val};
+                if(row.n=='name') {
+                    this.old_name = row.v;
+                    if(mode) args.mode = mode;
+                }
+                this.prpmodel.update(args, i);
                 if(row.n == 'sections')   jq.event(this,'beforechangesections');
             }
         }
     },
     _onUpdate:function(msg){
-        var v = this.cval;
-        v[msg.row].obj.className = '';
-        v[msg.row] = null;
-        var rows = this.prpmodel.rows;
-        var m = rows[msg.row];
-        if (m.n == 'name') {
-            jq.event(this,'onchangename',{id:this.editor.cmpid,name:m.v});
-            for(var i=0,l=rows.length;i<l;i++) if(rows[i]['t']=='link'){
-                var link = rows[i]['v'].split('.');
-                if(link[0]==this.old_name) {
-                    var nl = m.v+'.'+link[1];
-                    var form = this.id.getElementsByTagName('form')[0];
-                    form[rows[i].n].value = nl;
-                    rows[i]['v'] = nl;
+        if((msg.status===210)){ //Table exists
+            this.name_id = msg.row;
+            setTimeout(this._confirmRename(),10);
+            return true;
+        }
+        else if (msg.status===0){
+            var v = this.cval;
+            v[msg.row].obj.className = '';
+            v[msg.row] = null;
+            var rows = this.prpmodel.rows;
+            var m = rows[msg.row];
+            if (m.n == 'name') {
+                jq.event(this,'onchangename',{id:this.editor.cmpid,name:m.v});
+                for(var i=0,l=rows.length;i<l;i++) if(rows[i]['t']=='link'){
+                    var link = rows[i]['v'].split('.');
+                    if(link[0]==this.old_name) {
+                        var nl = m.v+'.'+link[1];
+                        var form = this.id.getElementsByTagName('form')[0];
+                        form[rows[i].n].value = nl;
+                        rows[i]['v'] = nl;
+                    }
                 }
             }
+            jq.event(this,'onupdate',{});
         }
-        jq.event(this,'onupdate',{});
     },
     showEditor:function(prp,n){
         var form = this.id.getElementsByTagName('form')[0];
@@ -79,7 +90,27 @@ jq.newClass('CPrpEditor','CVidget',{
             this.prpchange(this.editor_row,this.editor_prp);
         }
     },
-   dropCache:function(id){
+    dropCache:function(id){
         if((this.prpmodel.state===jq.STATE_READY) && (id==this.prpmodel.getParam('component'))) this.prpmodel.clear();
+    },
+    _confirmRename:function(name){
+        if(!this.confirmdlg){
+            var win="<div><header>Подхват таблиц</header><div>В базе данных обнаружены таблицы, оставшиеся от удалённого ранее компонента \
+с именем '"+name+"'. В результате переименования эти таблицы будут подхвачены. \
+Выберите, что делать со старыми таблицами.\</div>\n\
+<div class='centered'>\
+<button onclick='jq.get(\""+this.name+"\")._click(1)'>Удалить</button>\n\
+<button onclick='jq.get(\""+this.name+"\")._click(2)'>Оставить в базе данных</button>\n\
+<button onclick='jq.get(\""+this.name+"\")._click(0)'>Отменить переименование</button></div></div>";        
+            this.confirmdlg = document.createElement('DIV'); 
+            this.confirmdlg.innerHTML = win;
+            this.confirmdlg.className = 'confirm_dlg';
+            document.body.appendChild(this.confirmdlg);
+        }    
+        this.confirmdlg.style.display='block';
+    },
+    _click:function(n){
+        this.confirmdlg.style.display='none';
+        if(n>0) this.save(n);
     }
 });

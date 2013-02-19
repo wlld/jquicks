@@ -197,14 +197,16 @@ jq.newClass('CModel','CComponent',{
         else  this._setState(jq.STATE_ERROR);
     },
     _onUpdate:function(data) {
+        var c;
+        if(data.id !== undefined){
+            c = this.queie[data.id];
+            c.status = data.status;
+        } else c = data;
         if(data.status == 0){
-            var c = this.queie[data.id];
-            if(c){
-                for(var f in c.values) if(c.values.hasOwnProperty(f)) this.rows[c.row][f] = c.values[f];
-            }
-            jq.event(this,'onupdate',c);
+            for(var f in c.values) if(c.values.hasOwnProperty(f)) this.rows[c.row][f] = c.values[f];
             this.queie[data.id] = null;
         }
+        return jq.event(this,'onupdate',c);
     },
     _onInsert:function(data) {
         if(data.status === 0) jq.event(this,'oninsert');

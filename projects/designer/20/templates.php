@@ -104,9 +104,7 @@ $__var0['index']++;?>
 <div class="cmdpanel">
 <div onclick="jq.get('js_editor').save()">Сохранить</div>
 </div>
-<div class='content'>
-<textarea spellcheck='false'><? echo(htmlspecialchars($cmp->jsmodel->getField('js'),ENT_QUOTES))?></textarea>
-</div>
+<div id="js_content"></div>
 <?php }//js_editor_template?>
 <?php function palette_page_1_template($cmp){?>
 <? $__var0 = array('index'=>-1,'from'=>$cmp->components);
@@ -349,11 +347,3 @@ $l['index']++;?>
 </fieldset>
 </form>
 <?php }//linkspeededitor_template?>
-<?php function palette_page_4_template($cmp){?>
-<? $__var0 = array('index'=>-1,'from'=>$cmp->components);
-foreach($__var0['from'] as $cmp) {
-$__var0['index']++;?>
-<? $path=isCoreClass($cmp)?'/core/':'/components/'; ?>
-   <img alt="<? echo($cmp)?>" title="<? echo($cmp)?>" src="<? echo($path.$cmp)?>/icon.png"?>
-<?}?>
-<?php }//palette_page_4_template?>

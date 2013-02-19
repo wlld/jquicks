@@ -35,7 +35,7 @@ class TDBService_ extends TService_{
         if(!$r) $this->_dbError();
         return $r->fetchAll(PDO::FETCH_COLUMN,0);
     }
-    protected function _getTables(){
+    public function _getTables(){
         $xml = $this->_getSelfStructure();
         foreach($xml->table as $tag) $t[]=(string)$tag['name'];
         return $t;
@@ -43,7 +43,7 @@ class TDBService_ extends TService_{
     protected function createTables(){
         $tables = $this->_getDbTables();
         foreach($this->_getTables() as $table){
-            $tname = $this->table($table);
+            $tname = self::getTableName($this->name,$table);
             if(!in_array($tname, $tables)) $this->createTable ($table, $tname);
             else  $this->_catchTable($table,$tname);
         }
@@ -52,7 +52,7 @@ class TDBService_ extends TService_{
         $sql = $this->_getTableCreate($name,$tname);
         if ($this->db->exec($sql)===false) $this->_dbError();
     }
-    protected function table($n){return strtolower($this->name).'_'.$n; }
+    public static function getTableName($s,$m){return strtolower($s.'@'.$m);}
     protected function _getTableCreate($name,$tname){
         $xml = $this->_getSelfStructure();
         if(!($tables = $xml->xpath("table[@name='$name']"))) self::error(self::TABLEDEF_NOT_FOUND,$name);
@@ -68,7 +68,7 @@ class TDBService_ extends TService_{
             $unique = isset($index['unique'])&&(boolean)$index['unique'];
             $tdef[] = ($unique?'UNIQUE INDEX (':'INDEX (').(string)$index.')';
         }    
-        $sql = 'CREATE TABLE IF NOT EXISTS '.$tname." (\n".join(",\n",$tdef).')';
+        $sql = 'CREATE TABLE IF NOT EXISTS `'.$tname."` (\n".join(",\n",$tdef).')';
         $ttype = isset($table['type'])?(string)$table['type']:'MyISAM';
         $sql .= ' ENGINE='.$ttype;
         return $sql;
@@ -80,10 +80,17 @@ class TDBService_ extends TService_{
         $tbls = $this->_getDbTables();
         $tt = array();
         foreach($this->_getTables() as $table){
-            $told = $oldname.'_'.$table;
-            $tnew = $newname.'_'.$table;
-            if(in_array($tnew, $tbls)) self::error(self::TABLE_EXISTS,$tnew);
-            $tt[] = $told.' TO '.$tnew;
+            $told = self::getTableName($oldname,$table);
+            $tnew = self::getTableName($newname,$table);
+            if(in_array($tnew, $tbls)) {
+                switch($this->property_set_mode){
+                    case 0:self::error(self::TABLE_EXISTS,$tnew);
+                    //TODO: need to check for a foreign keys before drop table                       
+                    case 1:if ($this->db->exec("DROP TABLE `$told`")===false) $this->_dbError();
+                    case 2: $this->_catchTable($table,$tnew);
+                }
+            }
+            else $tt[] = "`$told` TO `$tnew`";
         }
         if($tt){
             $sql = 'RENAME TABLE '.join(',', $tt);
@@ -94,8 +101,8 @@ class TDBService_ extends TService_{
     public function setForignKey($model,$field,$service,$parent,$op){
         $this->db = $this->project->getByName('TDataBase')->db;
         $srvname = $this->_getName();
-        $ptable = strtolower($service.'_'.$parent);
-        $ctable = strtolower($srvname.'_'.$model);
+        $ptable = self::getTableName($service,$parent);
+        $ctable = self::getTableName($srvname,$model);
         $keys = $this->_getForignKeys($ctable);
         $n = self::_isKeyExists($field, $keys);
         if($n!==false){ //есть ссылка
@@ -115,11 +122,11 @@ class TDBService_ extends TService_{
         else return $mode==='RESTRICT'; 
     }
     private function _dropTableKey($table,$fid){
-        $sql = "ALTER TABLE $table DROP FOREIGN KEY $fid";
+        $sql = "ALTER TABLE `$table` DROP FOREIGN KEY $fid";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
     private function _addTableKey($table,$field,$to_table,$mode){
-        $sql = "ALTER TABLE $table ADD CONSTRAINT FOREIGN KEY ($field) REFERENCES $to_table(idx) ON DELETE $mode";
+        $sql = "ALTER TABLE `$table` ADD CONSTRAINT FOREIGN KEY ($field) REFERENCES `$to_table`(idx) ON DELETE $mode";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
     private function _catchTable($table,$db_table_name){
@@ -137,7 +144,7 @@ class TDBService_ extends TService_{
                 //Проверяем, совпадают ли параметры существующего ключа с заданными в ссылке
                 $l = $links[$link[2]];
                 if(!isset($c[$l[0]])) {$this->_dropTableKey($db_table_name,$link[1]); continue;}
-                $ptable = strtolower($c[$l[0]]['n'].'_'.$l[2]);
+                $ptable = self::getTableName($c[$l[0]]['n'],$l[2]);
                 if(self::_isThatLink($link,$ptable,$l[3])) {
                     unset($links[$link[2]]);
                     continue;
@@ -148,7 +155,7 @@ class TDBService_ extends TService_{
         //Создаём недостающие ссылки
         foreach($links as $field=>$l){
             if(isset($c[$l[0]])){
-                $ptable = strtolower($c[$l[0]]['n'].'_'.$l[2]);
+                $ptable = self::getTableName($c[$l[0]]['n'],$l[2]);
                 $this->_addTableKey($db_table_name,$field,$ptable,$l[3]);
             }
         }
@@ -160,7 +167,7 @@ class TDBService_ extends TService_{
      * @return array массив ключей
      */
     private function _getForignKeys($table){
-        $r = $this->db->query("SHOW CREATE TABLE $table");
+        $r = $this->db->query("SHOW CREATE TABLE `$table`");
         $struc = $r->fetchAll(PDO::FETCH_COLUMN,1);
         $m = array();
         $r = preg_match_all('/CONSTRAINT\s+`?(\w+)`?\s+FOREIGN\s+KEY\s*\(\s*`?(\w+)`?\s*\)?\s*'.
@@ -187,8 +194,8 @@ class TDBService_ extends TService_{
         if(isset($c['r'][$model][$field])) self::error(self::RATING_FIELD_EXISTS,$field,$model);
         $c['r'][$model][$field] = $type;
         $this->db = $this->project->getByName('TDataBase')->db;
-        $table = strtolower($c['n'].'_'.$model);
-        $sql = "ALTER TABLE $table ADD COLUMN `$field` {$type[0]}";
+        $table = self::getTableName($c['n'],$model);
+        $sql = "ALTER TABLE `$table` ADD COLUMN `$field` {$type[0]}";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
     public function deleteRatingField($model,$field){
@@ -196,8 +203,8 @@ class TDBService_ extends TService_{
         if(isset($c['r'][$model][$field])){
             unset($c['r'][$model][$field]);
             $this->db = $this->project->getByName('TDataBase')->db;
-            $table = strtolower($c['n'].'_'.$model);
-            $sql = "ALTER TABLE $table DROP COLUMN `$field`";
+            $table = self::getTableName($c['n'],$model);
+            $sql = "ALTER TABLE `$table` DROP COLUMN `$field`";
             if($this->db->exec($sql)===false) $this->_dbError();
         }
     }
@@ -205,10 +212,10 @@ class TDBService_ extends TService_{
         $c = &$this->project->db['components'][$this->id];
         if(!isset($c['r'][$model][$old_field_name])) self::error(self::FIELD_NOT_EXISTS,$old_field_name,$model);
         $this->db = $this->project->getByName('TDataBase')->db;
-        $table = strtolower($c['n'].'_'.$model);
+        $table = self::getTableName($c['n'],$model);
         $dbtables = $this->_getDbTables();
         if(in_array($table, $dbtables)){
-            $sql = "ALTER TABLE $table CHANGE COLUMN `$old_field_name` `$new_field_name` {$new_type[0]}";
+            $sql = "ALTER TABLE `$table` CHANGE COLUMN `$old_field_name` `$new_field_name` {$new_type[0]}";
             if($this->db->exec($sql)===false) $this->_dbError();
         }
         $type = $c['r'][$model][$old_field_name];
@@ -216,7 +223,7 @@ class TDBService_ extends TService_{
         $c['r'][$model][$new_field_name]=$type;
     }
     public function updateAllRatings($ptable,$ctable,$lfield,$op,$rfield,$tfield){
-        $sql = "UPDATE $ptable AS p SET `$tfield`=(SELECT $op(c.`$rfield`) FROM $ctable AS c WHERE c.`$lfield` = p.idx GROUP BY c.`$lfield`)";
+        $sql = "UPDATE `$ptable` AS p SET `$tfield`=(SELECT $op(c.`$rfield`) FROM `$ctable` AS c WHERE c.`$lfield` = p.idx GROUP BY c.`$lfield`)";
         if($this->db->exec($sql)===false) $this->_dbError();
     }
     protected  function _dbError(){

@@ -60,25 +60,25 @@ abstract class TDBService extends TService{
                 $child_row = $arg['values'];
                 if($icmd==UPDATE) $child_row['idx'] = $arg['index'];
             }
-            $ctable = strtolower($this->name.'_'.$model);
+            $ctable = self::getTableName($this->name,$model);
             $rsql='';
             foreach($this->_linksdef[1][$model] as $r){
                 list($service,$type,$parent,$op,$lfield,$rfield,$tfield) = $r;
                 if(($icmd==REMOVE)||($icmd==UPDATE)){
                     if($icmd==REMOVE){
-                        $sql="SELECT `$lfield`,`$rfield` FROM $ctable WHERE idx={$child_row['idx']}";
+                        $sql="SELECT `$lfield`,`$rfield` FROM `$ctable` WHERE idx={$child_row['idx']}";
                     }
                     else{
                         if(!isset($child_row[$rfield]) || $op=='COUNT') continue;
-                        $sql="SELECT `$lfield` FROM $ctable WHERE idx={$child_row['idx']}";
+                        $sql="SELECT `$lfield` FROM `$ctable` WHERE idx={$child_row['idx']}";
                     }
                     if(($r=$this->db->query($sql))===false) $this->_dbError();
                     $child_row += $r->fetch(PDO::FETCH_ASSOC);
                 }
                 $expr = $this->_getRatingExpression($icmd,$op,$lfield,$rfield,$tfield,$child_row,$ctable);
                 $parent_name = $this->project->getNameById($service);
-                $ptable = strtolower($parent_name.'_'.$parent);
-                $rsql .= "UPDATE $ptable AS p SET $expr WHERE idx={$child_row[$lfield]};\n";
+                $ptable = self::getTableName($parent_name,$parent);
+                $rsql .= "UPDATE `$ptable` AS p SET $expr WHERE idx={$child_row[$lfield]};\n";
             }
             if($icmd==REMOVE) $result = parent::queryModel($model, $cmd, $arg);
             if($rsql) if ($this->db->exec($rsql)===false) $this->_dbError();
@@ -98,7 +98,7 @@ abstract class TDBService extends TService{
                 if(!isset($child_row[$rfield])){
                     $idx = $this->db->lastInsertId();
                     if($rfield!='idx'){
-                        $sql="SELECT `$rfield` FROM $ctable WHERE idx=$idx";
+                        $sql="SELECT `$rfield` FROM `$ctable` WHERE idx=$idx";
                         if(($r=$this->db->query($sql))===false) $this->_dbError();
                         $child_row += $r->fetch(PDO::FETCH_ASSOC);
                     }
@@ -134,14 +134,14 @@ abstract class TDBService extends TService{
         }
         return $cmd;
     }
-    protected function table($n){return strtolower($this->name).'_'.$n; }
+    public static function getTableName($s,$m){return strtolower($s.'@'.$m);}
     protected function _fetchTableModel($args,$model,$awhere=array(),$params=array()){
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
-        $tbl = $this->table($model);
+        $tbl = self::getTableName($this->name,$model);
         $where = $awhere?  'WHERE ('.join(') AND (', $awhere).')':'';
         $links = $this->_getSQLLinks($model);
-        $sql = "SELECT SQL_CALC_FOUND_ROWS $fields FROM $tbl AS t $links $where $limit";
+        $sql = "SELECT SQL_CALC_FOUND_ROWS $fields FROM `$tbl` AS t $links $where $limit";
         $cmd = $this->_exec($sql,$params);
         $crows = $this->_exec('SELECT FOUND_ROWS()');
         $count = $crows->fetchColumn();
@@ -149,19 +149,19 @@ abstract class TDBService extends TService{
         return array('rows'=>$rows, 'count'=>$count);
     }
     protected function _insertTableModel($values,$model){
-        $tbl = $this->table($model);
+        $tbl = self::getTableName($this->name,$model);
         if($values){
             $fnames = array_keys($values);
             $fparams = array_values($values);
         } else {$fnames = $fparams = array();}
         $f = '`'.join('`, `',$fnames).'`';
         $val = rtrim(str_repeat('?,', count($fparams)),',');
-        $cmd = "INSERT INTO $tbl ($f) VALUES ($val)";
+        $cmd = "INSERT INTO `$tbl` ($f) VALUES ($val)";
         $this->_exec($cmd,$fparams);
     }
     protected function _removeTableModel($idx,$model){
-        $tbl = $this->table($model);
-        $this->_exec("DELETE FROM $tbl WHERE idx=?", array($idx));
+        $tbl = self::getTableName($this->name,$model);
+        $this->_exec("DELETE FROM `$tbl` WHERE idx=?", array($idx));
     }
     protected function _updateTableModel($values,$idx,$model){
         $aset = $params = array();  
@@ -171,7 +171,8 @@ abstract class TDBService extends TService{
         }
         $params[] = $idx;
         $set = join(', ',$aset);
-        $sql = "UPDATE {$this->table($model)} SET $set WHERE idx=?";
+        $tname = self::getTableName($this->name,$model);
+        $sql = "UPDATE `$tname` SET $set WHERE idx=?";
         $this->_exec($sql, $params);
     }
     protected function _getSQLWhere($args,$fields,&$where,&$params){
@@ -215,9 +216,9 @@ LEFT JOIN taccountservice_users AS `lastmsg.owner` ON `lastmsg`.`owner`=`lastmsg
                     if(!isset($cmps[$l[0]])) self::error(self::LINKED_SERVICE_NOT_FOUND,$clink);
                     if(!isset($joins[$alias])){;
                         $sname = $cmps[$l[0]]['n'];
-                        $table = strtolower($sname.'_'.$l[2]); 
+                        $table = self::getTableName($sname,$l[2]); 
                         $lfield = $context? "`$context`.`$clink`":"t.`$clink`";
-                        $joins[$alias] = "LEFT JOIN $table AS `$alias` ON $lfield=`$alias`.idx";
+                        $joins[$alias] = "LEFT JOIN `$table` AS `$alias` ON $lfield=`$alias`.idx";
                     }
                     if(++$i>=count($alink)) break;
                     $context = $alias;

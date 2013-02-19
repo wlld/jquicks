@@ -20,7 +20,7 @@ private static $_definition_struc = array (
     'properties' =>array (
       'p' => 'a:3:{s:7:"project";a:2:{i:0;i:3;i:1;b:1;}s:4:"page";a:2:{i:0;i:3;i:1;b:1;}s:9:"component";a:2:{i:0;i:1;i:1;b:1;}}',
       'i' => 'a:0:{}',
-      'u' => 'a:1:{s:1:"v";a:2:{i:0;i:0;i:1;b:0;}}',
+      'u' => 'a:2:{s:1:"v";a:2:{i:0;i:0;i:1;b:0;}s:4:"mode";a:2:{i:0;i:1;i:1;b:0;}}',
       'f' => 'a:6:{s:3:"idx";i:3;s:1:"n";i:3;s:1:"t";i:3;s:1:"o";i:3;s:1:"v";i:0;s:1:"d";i:3;}',
       'owner' => false,
     ),
@@ -207,7 +207,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $this->_loadEditingProject($idx[0]);
         $id = (integer)$idx[1];
         $designer = TComponent_::getDesigner($id, $this->_ed_project);//new
-        $designer->setProperty($idx[2],$val['v']);//
+        if(isset($val['mode'])) $designer->setProperty($idx[2],$val['v'],$val['mode']);
+        else $designer->setProperty($idx[2],$val['v']);
         if(($idx[2]==='sections')&&($this->_is_a($id, 'TComponent'))) $this->_updated_models[] = 'page';
     }
     public function _insert_page_model($args){
@@ -600,8 +601,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             $r_type = $childs_designer->getRatingType($v['child'],$l[5],$l[3]);
             $parent_designer = TComponent_::getDesigner((integer)$l[0], $this->_ed_project);
             $parent_designer->addRatingField($l[2],$l[6],$r_type);
-            $ptable = strtolower($this->_ed_project->getNameById((integer)$l[0]).'_'.$l[2]);
-            $ctable = strtolower($cmp['n'].'_'.$v['child']);
+            $ptable = self::getTableName($this->_ed_project->getNameById((integer)$l[0]),$l[2]);
+            $ctable = self::getTableName($cmp['n'],$v['child']);
             $parent_designer->updateAllRatings($ptable,$ctable,$l[4],$l[3],$l[5],$l[6]);
         }
         else{ //link
@@ -645,8 +646,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                 $parent_designer = TComponent_::getDesigner((integer)$link[0], $this->_ed_project);
                 $parent_designer->changeRatingField($link[2],$old_link[6],$link[6],$r_type);
                 if(isset($v['op'])||isset($v['rfield'])){
-                    $ptable = strtolower($this->_ed_project->getNameById((integer)$link[0]).'_'.$link[2]);
-                    $ctable = strtolower($cmp['n'].'_'.$idx[3]);
+                    $ptable = self::getTableName($this->_ed_project->getNameById((integer)$link[0]),$link[2]);
+                    $ctable = self::getTableName($cmp['n'],$idx[3]);
                     $parent_designer->updateAllRatings($ptable,$ctable,$link[4],$link[3],$link[5],$link[6]);
                 }
             }

@@ -7,6 +7,7 @@ class TPage extends TContainer {
     public $P3P = '';  //External
     private $_comps;
     private $_classes = array();
+    private $_loaded = array();
 
     public function __construct($project,$struc=null){
         parent::__construct($project,$struc);
@@ -84,6 +85,13 @@ class TPage extends TContainer {
         if(file_exists($this->path.'/page.js'))
             echo '<script type="text/javascript" src="',$this->_noCacheLink('page.js'),'"></script>',"\n";
         echo "<body>\n<html>";
+    }
+    public function drawLibrary($url){
+        if(in_array($url, $this->_loaded)) return;
+        $ext = substr(strrchr($url, '.'), 1);
+        if($ext=='js') echo('  <script type="text/javascript" src="'.$url.'"></script>'."\n");
+        elseif($ext=='css') echo('  <link rel="stylesheet" href="'.$url.'" type="text/css" />');
+        $this->_loaded[] = $url;
     }
     public function draw(){
         header('Content-Type: text/html; charset=utf-8');

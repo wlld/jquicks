@@ -113,6 +113,13 @@ class TProject{
                 call_user_func($h,$args);
             }
     }
+    public static function getLibraryPath($lib){
+       return (in_array($lib,array('crypt'))? '/core/lib/':'/lib/').$lib;
+    }
+    public static function loadLibraryFile($lib,$file){
+        $path = self::getLibraryPath($lib);
+        require_once "{$_SERVER['DOCUMENT_ROOT']}$path/server/$file";
+    }
 }
 function __autoload($class) {
     $path = TComponent::getPalettePath($class);

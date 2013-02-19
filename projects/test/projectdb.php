@@ -33,6 +33,7 @@ array (
         0 => 25,
         1 => 12,
         2 => 5,
+        3 => 30,
       ),
       's' =>array (
         0 =>array (
@@ -124,8 +125,7 @@ array (
         1 => 12,
         2 => 5,
         3 => 21,
-        4 => 20,
-        5 => 9,
+        4 => 9,
       ),
     ),
     9 =>array (
@@ -454,7 +454,6 @@ array (
       'n' => 'srv_discuss',
       'l' =>array (
         14 => 1,
-        8 => 1,
       ),
       'p' =>array (
         'auth_required' =>array (
@@ -650,6 +649,15 @@ array (
         ),
       ),
     ),
+    30 =>array (
+      'c' => 'TForumService',
+      'n' => 'forumservice_2',
+      'l' =>array (
+        0 => 1,
+      ),
+      'p' =>array (
+      ),
+    ),
   ),
   'names' =>array (
     'index' => 0,
@@ -674,6 +682,7 @@ array (
     'regform' => 26,
     'vidget_2' => 28,
     'frm_registration' => 29,
+    'forumservice_2' => 30,
   ),
   'classes' =>array (
     'TPage' =>array (

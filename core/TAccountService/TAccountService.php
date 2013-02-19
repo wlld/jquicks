@@ -68,7 +68,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         if ($awhere) $where = 'WHERE ('.join(') AND (', $awhere).')';
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
-        $sql = "SELECT $fields FROM {$this->table('rights')} AS t $where $limit";
+        $tname = self::getTableName($this->name,'rights');
+        $sql = "SELECT $fields FROM `$tname` AS t $where $limit";
         $r = $this->_exec($sql,$params);
         $rows = $r->fetchAll(PDO::FETCH_ASSOC);
         $this->_castResultTypes($rows, 'rights');
@@ -76,19 +77,20 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     public function _insert_rights_model($args){
         $v = $args['values'];
-        $tbl = $this->table('rights');
+        $tbl = self::getTableName($this->name,'rights');
         $ff = array_keys($v);
         $f = '`'.join('`, `',$ff).'`';
-        $cmd = "INSERT INTO $tbl ($f) VALUES (?,?,?,?,?,?,?,?,?,?)";
+        $cmd = "INSERT INTO `$tbl` ($f) VALUES (?,?,?,?,?,?,?,?,?,?)";
         $this->_exec($cmd,  array_values($v));
     }
     public function _remove_rights_model($args){
         $p = array($args['index']);
-        $tbl = $this->table('rights');
-        $this->_exec("DELETE FROM $tbl WHERE idx=?", $p);
+        $tbl = self::getTableName($this->name,'rights');
+        $this->_exec("DELETE FROM `$tbl` WHERE idx=?", $p);
     }
     public function removeServiceRights($service){
-        $this->_exec("DELETE FROM {$this->table('rights')} WHERE service=?", array($service));
+        $tname = self::getTableName($this->name,'rights');
+        $this->_exec("DELETE FROM `$tname` WHERE service=?", array($service));
     }
     public function _update_rights_model($args){
         $aset = $params = array();  
@@ -98,7 +100,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         }
         $params[] = $args['index'];
         $set = join(', ',$aset);
-        $sql = "UPDATE {$this->table('rights')} SET $set WHERE idx=?";
+        $tname = self::getTableName($this->name,'rights');
+        $sql = "UPDATE `$tname` SET $set WHERE idx=?";
         $this->_exec($sql, $params);
     }
     protected function _fetch_users_model($args){
@@ -115,7 +118,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         else $where = '';
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
-        $sql = "SELECT $fields FROM {$this->table('users')} AS t $where $limit";
+        $tname = self::getTableName($this->name,'users');
+        $sql = "SELECT $fields FROM `$tname` AS t $where $limit";
         $r = $this->_exec($sql,$params);
         $rows = $r->fetchAll(PDO::FETCH_ASSOC);
         return array('rows'=>$rows,'count'=>count($rows));
@@ -127,18 +131,18 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             $where = 'WHERE idx=?'; $params[]=$p['idx'];
         }
         else $where = '';
-        $utbl = $this->table('groups');
+        $utbl = self::getTableName($this->name,'groups');
         $fields = $this->_getSQLFields($args['fields']);
         $limit = $this->_getSQLLimit($args['first'],$args['limit']);
-        $sql = "SELECT $fields FROM $utbl AS t $where $limit";
+        $sql = "SELECT $fields FROM `$utbl` AS t $where $limit";
         $r = $this->_exec($sql,$params);
         $rows = $r->fetchAll(PDO::FETCH_ASSOC);
         return array('rows'=>$rows,'count'=>count($rows));
     }
     protected function authenticationPhase1($args){ //command
-        $id = substr(uniqid(''),0,6);
-        $table = $this->table('users');
-        $sql = "UPDATE $table SET pub_key='$id' WHERE login=?";
+        $id = substr(uniqid(''),7);
+        $table = self::getTableName($this->name,'users');
+        $sql = "UPDATE `$table` SET pub_key='$id' WHERE login=?";
         $cmd = $this->_exec($sql,array($args['login']));
         if($cmd->rowCount() === 0) self::error(self::LOGIN_UNKNOWN,$args['login']);
         $r = $this->_getRSAKeys();
@@ -147,13 +151,13 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     protected function authenticationPhase2($args){ //command
         list($pass,$id) = $this->getSHAPassword($args['pass']);
         $rm = isset($args['rm'])?$args['rm']:0;
-        $table = $this->table('users');
+        $table = self::getTableName($this->name,'users');
         $this->db->beginTransaction();
-        $sql = "SELECT idx,groups,name,password,pub_key FROM $table WHERE login=? AND active=1 FOR UPDATE";
+        $sql = "SELECT idx,groups,name,password,pub_key FROM `$table` WHERE login=? AND active=1 FOR UPDATE";
         $cmd = $this->_exec($sql,array($args['login']));
         if($cmd->rowCount()!==0){
             $row = $cmd->fetch(PDO::FETCH_ASSOC);
-            $sql = "UPDATE $table SET pub_key='' WHERE login=?";
+            $sql = "UPDATE `$table` SET pub_key='' WHERE idx=?";
             $this->_exec($sql, array($row['idx']));
         }
         $this->db->commit();
@@ -167,8 +171,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     private function startSession($user_id,$rm=0){
         $sid = md5(uniqid(rand(0,100000)));
-        $table = $this->table('sessions');
-        $cmd = "INSERT INTO $table (idx,user_idx,ip,uagent,expire,last_active) VALUES ('$sid', :user_idx, :ip, :uagent, :expire, :last_active)";
+        $table = self::getTableName($this->name,'sessions');
+        $cmd = "INSERT INTO `$table` (idx,user_idx,ip,uagent,expire,last_active) VALUES ('$sid', :user_idx, :ip, :uagent, :expire, :last_active)";
         $this->_exec($cmd,array(
             ':user_idx'=>$user_id,
             ':ip'=>$_SERVER['REMOTE_ADDR'],
@@ -185,8 +189,8 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $cookie_name = 'sid::'.$this->project->name;
         if(isset($_COOKIE[$cookie_name])){
             $sid = substr($_COOKIE[$cookie_name],0,32);
-            $stbl = $this->table('sessions');
-            $this->_exec("DELETE FROM $stbl WHERE idx=?", array($sid));
+            $stbl = self::getTableName($this->name,'sessions');
+            $this->_exec("DELETE FROM `$stbl` WHERE idx=?", array($sid));
             setcookie ($cookie_name, '',time()-3600,'/');
             unset($_COOKIE[$cookie_name]);
         }
@@ -200,7 +204,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         self::checkLogin($args['login']);
         list($pass,$id) = $this->getSHAPassword($args['pass']);
         $name = isset($args['name'])? $args['name']:$args['login'];
-        $table = $this->table('users');
+        $table = self::getTableName($this->name,'users');
         $email = isset($args['email'])? $args['email']:'';
         $date = date(self::SQL_DATE_FORMAT);
         $active = ($this->regmode==='BASIC')?1:0;
@@ -210,7 +214,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         }
         else $key='';
         if($email) self::checkEmail($email);
-        $cmd = $this->db->prepare("INSERT INTO $table (login,password,name,email,regdate,active,pub_key) VALUES(?,?,?,?,?,?,?)");
+        $cmd = $this->db->prepare("INSERT INTO `$table` (login,password,name,email,regdate,active,pub_key) VALUES(?,?,?,?,?,?,?)");
         $r = $cmd->execute(array($args['login'],$pass,$name,$email,$date,$active,$key));
         if(!$r) {
             if($cmd->errorCode()==='23000') self::error(self::LOGIN_EXISTS,$args['login']);
@@ -219,7 +223,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         return;
     }
     private function getSHAPassword($enc_pass){
-        jq::get('TCryptLibrary')->load('RSA.php');
+        TProject::loadLibraryFile('crypt','RSA.php');
         $rsa = new Crypt_RSA();
         $r = $this->_getRSAKeys();
         $p = base64_decode($enc_pass);
@@ -247,7 +251,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     private function _getRSAKeys(){
         if(!file_exists($this->path.'/rsakeys.ini')){
-            jq::get('TCryptLibrary')->load('RSA.php');
+            TProject::loadLibraryFile('crypt','RSA.php');
             $rsa = new Crypt_RSA();
             $keys = $rsa->createKey($this->RSA_key_size);
             $ini ="private=\"{$keys['privatekey']}\"\npublic=\"{$keys['publickey']}\""; 
@@ -261,10 +265,10 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
         $cookie_name = 'sid::'.$this->project->name;
         if(!isset($_COOKIE[$cookie_name])) return array(0,'','0');
         $sid = substr($_COOKIE[$cookie_name],0,32);
-        $stbl = $this->table('sessions');
-        $utbl = $this->table('users');
+        $stbl = self::getTableName($this->name,'sessions');
+        $utbl = self::getTableName($this->name,'users');
         $sql = "SELECT u.idx,u.name,u.groups,s.ip,s.uagent,UNIX_TIMESTAMP(s.expire) AS expire
-            FROM $stbl AS s, $utbl AS u WHERE s.idx=? AND s.user_idx=u.idx";
+            FROM `$stbl` AS s, `$utbl` AS u WHERE s.idx=? AND s.user_idx=u.idx";
         $cmd = $this->_exec($sql,array($sid));
         if($cmd->rowCount()===0) array(0,'','0');
         $row = $cmd->fetch();
@@ -273,7 +277,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             $this->logout();
             return array(0,'','0');
         }
-        if(rand(0,10000)<2) $this->_exec("DELETE FROM {$this->table('sessions')} WHERE expire<=now()?");
+        if(rand(0,10000)<2) $this->_exec("DELETE FROM `$stbl` WHERE expire<=now()?");
         unset($row['ip'],$row['uagent'],$row['expire']);
         return array_values($row);
     }
@@ -336,11 +340,11 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
     }
     private function _trainingModelCommand($service,$model,$command,$arg=null,$isOwnerFunc=null){
             if(($g = $this->_getGroup()) === false) return true;
-            $trights = $this->table('rights');
+            $trights = self::getTableName($this->name,'rights');
             $this->db->beginTransaction();
             switch ($command){
                 case 'fetch':{
-                    $sql = "SELECT `idx`,`fetch-group` FROM $trights WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
+                    $sql = "SELECT `idx`,`fetch-group` FROM `$trights` WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
                     $r = $this->_exec($sql, array($g,$model,$service));
                     if($rrow = $r->fetch()){
                         //Корректируем существующие права
@@ -348,13 +352,13 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                         $new_f = array_diff($arg['fields'],$old_f);
                         if($new_f){
                             //Есть новые поля. Дописываем их в таблицу прав
-                            $sql = "UPDATE $trights SET `fetch-group`=? WHERE idx=?";
+                            $sql = "UPDATE `$trights` SET `fetch-group`=? WHERE idx=?";
                             $this->_exec($sql, array(join(',',array_merge($old_f,$new_f)),$rrow['idx']));
                         }
                     }
                     else{
                         //Нет строки. Добавляем её
-                        $sql = "INSERT INTO $trights (`group`, `model`, `service`, `fetch-group`) VALUES (?,?,?,?)";
+                        $sql = "INSERT INTO `$trights` (`group`, `model`, `service`, `fetch-group`) VALUES (?,?,?,?)";
                         $this->_exec($sql, array($g,$model,$service,join(',',$arg['fields'])));
                     }
                     break;
@@ -364,7 +368,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                     break;
                 }    
                 case 'update': {
-                    $sql = "SELECT `idx`,`update-group`,`update-owner` FROM $trights WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
+                    $sql = "SELECT `idx`,`update-group`,`update-owner` FROM `$trights` WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
                     $r = $this->_exec($sql, array($g,$model,$service));
                     $own  = $isOwnerFunc[0]->$isOwnerFunc[1]($arg['index'],true);
                     $fields = array_keys($arg['values']);
@@ -377,7 +381,7 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                         $new_owner = $own? array_merge($old_owner,$new_f):array_diff($old_owner,$fields);
                         if(($old_group!=$new_group)||($old_owner!=$new_owner)){
                             //Есть новые поля. Дописываем их в таблицу прав
-                            $sql = "UPDATE $trights SET `update-group`=?,`update-owner`=? WHERE idx=?";
+                            $sql = "UPDATE `$trights` SET `update-group`=?,`update-owner`=? WHERE idx=?";
                             $this->_exec($sql, array(join(',',$new_group),join(',',$new_owner),$rrow['idx']));
                         }
                     }
@@ -385,24 +389,24 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
                         //Нет строки. Добавляем её
                         $group = join(',',$fields);
                         $owner = $own? $group:'';
-                        $sql = "INSERT INTO $trights (`group`, `model`, `service`, `update-group`, `update-owner`) VALUES (?,?,?,?,?)";
+                        $sql = "INSERT INTO `$trights` (`group`, `model`, `service`, `update-group`, `update-owner`) VALUES (?,?,?,?,?)";
                         $this->_exec($sql, array($g,$model,$service,$group,$owner));
                     }
                     break;
                 }
                 case 'remove': {
-                    $sql = "SELECT `idx`,`remove-group`,`remove-owner` FROM $trights WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
+                    $sql = "SELECT `idx`,`remove-group`,`remove-owner` FROM `$trights` WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
                     $r = $this->_exec($sql, array($g,$model,$service));
                     $own  = $isOwnerFunc[0]->$isOwnerFunc[1]($arg['index'],true)? 1:0;
                     if($rrow = $r->fetch()){
                         if($rrow['remove-group'] && $own) break;
                         if(($rrow['remove-group']==0) || ($rrow['remove-owner']!=$own)) {
-                            $sql = "UPDATE $trights SET `remove-group`=1,`remove-owner`=? WHERE idx=?";
+                            $sql = "UPDATE `$trights` SET `remove-group`=1,`remove-owner`=? WHERE idx=?";
                             $this->_exec($sql, array($own,$rrow['idx']));
                         }
                     }
                     else{
-                        $sql = "INSERT INTO $trights (`group`, `model`, `service`, `remove-group`, `remove-owner`) VALUES (?,?,?,1,?)";
+                        $sql = "INSERT INTO `$trights` (`group`, `model`, `service`, `remove-group`, `remove-owner`) VALUES (?,?,?,1,?)";
                         $this->_exec($sql, array($g,$model,$service,$own));
                     }
                 }
@@ -411,17 +415,17 @@ protected function &getDefinitionStruc(){return self::$_definition_struc;}
             return false;
     }
     private function _saveInsertRights($g,$model,$service){
-        $trights = $this->table('rights');
-        $sql = "SELECT `idx`,`insert-group` FROM $trights WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
+        $trights = self::getTableName($this->name,'rights');
+        $sql = "SELECT `idx`,`insert-group` FROM `$trights` WHERE `group`=? AND `model`=? AND `service`=? FOR UPDATE";
         $r = $this->_exec($sql, array($g,$model,$service));
         if($rrow = $r->fetch()){
             if(!$rrow['insert-group']){
-                $sql = "UPDATE $trights SET `insert-group`=1 WHERE idx=?";
+                $sql = "UPDATE `$trights` SET `insert-group`=1 WHERE idx=?";
                 $this->_exec($sql, array($rrow['idx']));
             }
         }
         else{
-            $sql = "INSERT INTO $trights (`group`, `model`, `service`, `insert-group`) VALUES (?,?,?,1)";
+            $sql = "INSERT INTO `$trights` (`group`, `model`, `service`, `insert-group`) VALUES (?,?,?,1)";
             $this->_exec($sql, array($g,$model,$service));
         }
     }

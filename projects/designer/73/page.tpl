@@ -13,6 +13,7 @@ JQuicks 1.0.0a4
 <a href="https://github.com/wlld/jquicks" class="medit">Git</a>
 <a href="https://github.com/wlld/jquicks/issues" class="medit">Bug tracker</a>
 <a href="/projects/designer/srvcompiler.php" class="mtools">Компилятор служб</a>
+<a href="/rename_tables.php">Переименовать таблицы</a>
 <!--menu-->
 <!--shelp-->
 <h1>Справка по службам</h1>

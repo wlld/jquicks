@@ -15,6 +15,7 @@ class TComponent_ {
     protected $id = null; // Экземпляр объекта, если редактируем существующий объект
     protected $class; //Класс объекта, с которым имеем дело
     protected $project; //Класс объекта, с которым имеем дело
+    protected $property_set_mode;
     /**
      * Создаёт экземпляр класса дизайнера для нового или существующего в проекте компонента
      * @param integer|string $item id компонента - для существующего, имя класса - для нового
@@ -160,7 +161,8 @@ class TComponent_ {
         }
         $this->project->changed = true;
     }
-    public function setProperty($prp,$val){
+    public function setProperty($prp,$val,$mode=0){
+        $this->property_set_mode = $mode;
         if($prp==='name') $this->_rename($val);
         else{
             $c = &$this->project->db['components'][$this->id];
